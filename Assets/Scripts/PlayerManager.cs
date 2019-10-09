@@ -8,12 +8,12 @@ public class PlayerManager : MonoBehaviour
     Transform baton;
     Transform body;
 
-    Rigidbody rigidBody;
+    Rigidbody2D rigidBody;
 
     // Start is called before the first frame update
     void Start()
     {
-        rigidBody = gameObject.GetComponent<Rigidbody>();
+        rigidBody = gameObject.GetComponent<Rigidbody2D>();
 
         foreach (Transform child in transform)
         {
@@ -40,11 +40,11 @@ public class PlayerManager : MonoBehaviour
 
     public void BatonRotate(Quaternion angle)
     {
-        batonPivot.rotation = angle;
+        batonPivot.localRotation = angle;
     }
 
     public void Move(Vector2 delta)
     {
-        rigidBody.AddForce(new Vector3(delta.x, 0f, delta.y));
+        rigidBody.AddForce(new Vector2(delta.x, delta.y));
     }
 }
