@@ -7,7 +7,7 @@ public class PlayerController : MonoBehaviour
 {
     PlayerManager playerManager;
     CameraManager cameraManager;
-
+    
     float accelrate = 52f;
 
     // Start is called before the first frame update
