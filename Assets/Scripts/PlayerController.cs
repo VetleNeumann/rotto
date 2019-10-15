@@ -39,12 +39,17 @@ public class PlayerController : MonoBehaviour
 
     void BatonControl()
     {
-		Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-		playerManager.BatonRotate(mouseWorldPos, batonMaxMove, batonRotateInertia);
+		bool extendBaton = Input.GetMouseButton(0);
+		bool chargeSpring = Input.GetMouseButton(1);
 
-		bool mouseDown = Input.GetMouseButton(0);
-		playerManager.BatonState(mouseDown, batonExtendLength, batonStateInertian);
-    }
+		if (Input.GetMouseButtonUp(1))
+			playerManager.UnleashSpring(3);
+
+		Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+		playerManager.BatonRotate(mouseWorldPos, batonMaxMove, batonRotateInertia, chargeSpring);
+
+		playerManager.BatonState(extendBaton, batonExtendLength, batonStateInertian);
+	}
 
     void MovementControl()
     {
