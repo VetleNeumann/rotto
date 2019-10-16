@@ -23,7 +23,7 @@ public class DoorController : MonoBehaviour
             moving = !doorManager.MoveDoor(open);
     }
 
-    void ToggleDoor()
+    public void ToggleDoor()
     {
         open = !open;
         moving = true;
