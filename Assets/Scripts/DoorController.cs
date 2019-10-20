@@ -28,4 +28,9 @@ public class DoorController : MonoBehaviour
         open = !open;
         moving = true;
     }
+
+    public void ButtonPressed()
+    {
+        ToggleDoor();
+    }
 }
