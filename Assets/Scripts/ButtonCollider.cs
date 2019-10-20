@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class ButtonCollider : MonoBehaviour
 {
-    DoorController doorController;
+    ControllerBase controller;
     // Start is called before the first frame update
     void Start()
     {
-        doorController = GetComponentInParent<DoorController>();
+        controller = GetComponentInParent<ControllerBase>();
     }
 
     void OnCollisionEnter2D()
     {
-        doorController.ButtonPressed();
+        controller.ButtonPressed();
     }
 }

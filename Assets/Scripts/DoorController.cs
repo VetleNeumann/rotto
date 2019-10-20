@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(DoorManager))]
-public class DoorController : MonoBehaviour
+public class DoorController : ControllerBase
 {
     DoorManager doorManager;
 
@@ -29,7 +29,7 @@ public class DoorController : MonoBehaviour
         moving = true;
     }
 
-    public void ButtonPressed()
+    public override void ButtonPressed()
     {
         ToggleDoor();
     }
