@@ -15,4 +15,9 @@ public class PillarTrigger : MonoBehaviour
     {
         puzzleController.PillarHit(transform);
     }
+
+	void OnTriggerEnter(Collider collider)
+	{
+		puzzleController.PillarHit(transform);
+	}
 }

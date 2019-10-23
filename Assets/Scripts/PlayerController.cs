@@ -45,8 +45,8 @@ public class PlayerController : MonoBehaviour
 		if (Input.GetMouseButtonUp(1))
 			playerManager.UnleashSpring(3);
 
-		Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-		playerManager.BatonRotate(mouseWorldPos, batonMaxMove, batonRotateInertia, chargeSpring);
+		Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+		playerManager.BatonRotate(mouseRay, batonMaxMove, batonRotateInertia, chargeSpring);
 
 		playerManager.BatonState(extendBaton, batonExtendLength, batonStateInertian);
 	}

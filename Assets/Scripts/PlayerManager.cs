@@ -9,17 +9,16 @@ public class PlayerManager : MonoBehaviour
 	Transform baton;
 	Transform body;
 
-	Rigidbody2D rigidBody;
+	Rigidbody rigidBody;
 
 	float batonExtend;
-	[SerializeField]
 	float springCharge;
 	bool springCharing = false;
 
 	// Start is called before the first frame update
 	void Start()
 	{
-		rigidBody = gameObject.GetComponent<Rigidbody2D>();
+		rigidBody = gameObject.GetComponent<Rigidbody>();
 
 		foreach (Transform child in transform)
 		{
@@ -38,10 +37,12 @@ public class PlayerManager : MonoBehaviour
 		}
 	}
 
-	public void BatonRotate(Vector3 position, float maxMove, float inertia, bool chargeSpring)
+	public void BatonRotate(Ray cameraRay, float maxMove, float inertia, bool chargeSpring)
 	{
-		float mouseAngle = Vector3.SignedAngle(position - transform.position, Vector3.up, Vector3.forward);
-		float batonAngle = Vector3.SignedAngle(baton.forward, Vector3.up, Vector3.forward);
+		Vector3 position = GetMousePos(cameraRay);
+
+		float mouseAngle = Vector3.SignedAngle(position - new Vector3(transform.position.x, 0, transform.position.z), Vector3.forward, Vector3.down);
+		float batonAngle = Vector3.SignedAngle(baton.forward, Vector3.forward, Vector3.down);
 
 		float moveDelta = Mathf.DeltaAngle(batonAngle, mouseAngle);
 		float moveLength = Mathf.Abs(moveDelta);
@@ -64,12 +65,18 @@ public class PlayerManager : MonoBehaviour
 
 	public void Move(Vector2 delta)
 	{
-		rigidBody.AddForce(new Vector2(delta.x, delta.y));
+		rigidBody.AddForce(new Vector3(delta.x, 0, delta.y));
 	}
 
 	public void UnleashSpring(float step)
 	{
 		StartCoroutine(SpringRoutine(step));
+	}
+
+	Vector3 GetMousePos(Ray cameraRay)
+	{
+		Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, LayerMask.GetMask("Ground"));
+		return hit.point;
 	}
 
 	IEnumerator SpringRoutine(float step)

@@ -20,6 +20,8 @@ public class PillarPuzzleManager : MonoBehaviour
 
     public void SetPillarStatus(Pillar pillar, bool enabled)
     {
+		// Needs to be changed to 3D
+		/*
         SpriteRenderer sprite = pillar.transform.GetComponent<SpriteRenderer>();
         Color newColor = new Color();
         switch (pillar.color)
@@ -39,5 +41,6 @@ public class PillarPuzzleManager : MonoBehaviour
             sprite.color += newColor;
         else
             sprite.color -= newColor;
+			*/
     }
 }

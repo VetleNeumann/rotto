@@ -5,7 +5,7 @@ using UnityEngine;
 public class CameraManager : MonoBehaviour
 {
     GameObject rotto;
-    public float yOffset = 9f;
+    public float yOffset = 11f;
     public float zOffset = 0f;
     public float xRotation = 80f;
 
