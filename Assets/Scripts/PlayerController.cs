@@ -23,8 +23,10 @@ public class PlayerController : MonoBehaviour
 	[SerializeField]
 	float batonExtendLength;
 
-	// Start is called before the first frame update
-	void Start()
+    bool extendBaton = false;
+
+    // Start is called before the first frame update
+    void Start()
     {
         playerManager = GetComponent<PlayerManager>();
         cameraManager = Camera.main.GetComponent<CameraManager>();
@@ -39,7 +41,7 @@ public class PlayerController : MonoBehaviour
 
     void BatonControl()
     {
-		bool extendBaton = Input.GetMouseButton(0);
+		extendBaton = Input.GetMouseButtonDown(0) ? !extendBaton : extendBaton;
 		bool chargeSpring = Input.GetMouseButton(1);
 
 		if (Input.GetMouseButtonUp(1))
