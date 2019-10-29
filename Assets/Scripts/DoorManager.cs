@@ -45,13 +45,13 @@ public class DoorManager : MonoBehaviour
 
     public bool MoveDoor(bool open)
     {
-        leftDoor.position = Vector3.Lerp(leftDoor.position, initialPosLeft + Vector3.left * (open ? 1f - doorRemain : 0f), doorSpeed);
-        rightDoor.position = Vector3.Lerp(rightDoor.position, initialPosRight + Vector3.right * (open ? 1f - doorRemain : 0f), doorSpeed);
+        leftDoor.position = Vector3.Lerp(leftDoor.position, initialPosLeft - transform.right * (open ? 1f - doorRemain : 0f), doorSpeed);
+        rightDoor.position = Vector3.Lerp(rightDoor.position, initialPosRight + transform.right * (open ? 1f - doorRemain : 0f), doorSpeed);
         
-        if (open && (leftDoor.position - (initialPosLeft + Vector3.left * (1 - doorRemain))).magnitude < closedTolerance)
+        if (open && (leftDoor.position - (initialPosLeft - transform.right * (1 - doorRemain))).magnitude < closedTolerance)
         {
-            leftDoor.position = initialPosLeft + Vector3.left * (1 - doorRemain);
-            rightDoor.position = initialPosRight + Vector3.right * (1 - doorRemain);
+            leftDoor.position = initialPosLeft - transform.right * (1 - doorRemain);
+            rightDoor.position = initialPosRight + transform.right * (1 - doorRemain);
             return true;
         }
         else if (!open && (leftDoor.position - initialPosLeft).magnitude < closedTolerance)

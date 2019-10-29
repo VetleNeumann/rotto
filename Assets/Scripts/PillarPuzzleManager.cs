@@ -18,7 +18,7 @@ public class PillarPuzzleManager : MonoBehaviour
         
     }
 
-    public void SetPillarStatus(Pillar pillar, Material material, bool enabled)
+    public void SetPillarStatus(Pillar pillar, PillarColor pillarColor, bool enabled)
     {
 		// Needs to be changed to 3D
 		Renderer rendere = pillar.Transform.GetComponent<Renderer>();
@@ -36,12 +36,10 @@ public class PillarPuzzleManager : MonoBehaviour
                 break;
         }
 
-		rendere.material = material;
-		/*
         if (enabled)
-            rendere.color += newColor;
+            rendere.material = pillarColor.After;
         else
-            rendere.color -= newColor;
-			*/
-    }
+			rendere.material = pillarColor.Before;
+
+	}
 }

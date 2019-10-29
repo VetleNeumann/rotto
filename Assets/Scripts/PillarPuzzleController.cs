@@ -20,13 +20,13 @@ public class PillarPuzzleController : MonoBehaviour
 	[SerializeField]
 	PillarColor[] pillarColors;
 
-	Dictionary<ColorRGB, Material> colorToMaterial;
+	Dictionary<ColorRGB, PillarColor> colorToPillar;
 
     // Start is called before the first frame update
     void Start()
     {
         puzzleManager = GetComponent<PillarPuzzleManager>();
-		colorToMaterial = pillarColors.ToDictionary(x => x.Color, x => x.Before);
+		colorToPillar = pillarColors.ToDictionary(x => x.Color);
 
         pillars = new Pillar[transform.childCount];
         for (int i = 0; i < transform.childCount; i++)
@@ -73,7 +73,7 @@ public class PillarPuzzleController : MonoBehaviour
             if (pillars[i].Activated)
             {
                 pillars[i].Activated = false;
-                puzzleManager.SetPillarStatus(pillars[i], colorToMaterial[pillars[i].Color], false);
+                puzzleManager.SetPillarStatus(pillars[i], colorToPillar[pillars[i].Color], false);
             }
             
     }
@@ -93,7 +93,7 @@ public class PillarPuzzleController : MonoBehaviour
                 if (pillars[i].Color == prevColor || DoneWithMaterial(prevColor))
                 {
                     pillars[i].Activated = true;
-                    puzzleManager.SetPillarStatus(pillars[i], colorToMaterial[pillars[i].Color], true);
+                    puzzleManager.SetPillarStatus(pillars[i], colorToPillar[pillars[i].Color], true);
                 }
                 else
                 {
