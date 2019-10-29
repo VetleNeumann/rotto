@@ -18,13 +18,12 @@ public class PillarPuzzleManager : MonoBehaviour
         
     }
 
-    public void SetPillarStatus(Pillar pillar, bool enabled)
+    public void SetPillarStatus(Pillar pillar, Material material, bool enabled)
     {
 		// Needs to be changed to 3D
-		/*
-        SpriteRenderer sprite = pillar.transform.GetComponent<SpriteRenderer>();
+		Renderer rendere = pillar.Transform.GetComponent<Renderer>();
         Color newColor = new Color();
-        switch (pillar.color)
+        switch (pillar.Color)
         {
             case ColorRGB.Red:
                 newColor = new Color(colorDiff, 0f, 0f);
@@ -37,10 +36,12 @@ public class PillarPuzzleManager : MonoBehaviour
                 break;
         }
 
+		rendere.material = material;
+		/*
         if (enabled)
-            sprite.color += newColor;
+            rendere.color += newColor;
         else
-            sprite.color -= newColor;
+            rendere.color -= newColor;
 			*/
     }
 }

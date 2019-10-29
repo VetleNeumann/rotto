@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [RequireComponent(typeof(PillarPuzzleManager))]
@@ -16,10 +17,16 @@ public class PillarPuzzleController : MonoBehaviour
     [SerializeField]
     DoorController solvedDoor;
 
+	[SerializeField]
+	PillarColor[] pillarColors;
+
+	Dictionary<ColorRGB, Material> colorToMaterial;
+
     // Start is called before the first frame update
     void Start()
     {
         puzzleManager = GetComponent<PillarPuzzleManager>();
+		colorToMaterial = pillarColors.ToDictionary(x => x.Color, x => x.Before);
 
         pillars = new Pillar[transform.childCount];
         for (int i = 0; i < transform.childCount; i++)
@@ -48,11 +55,11 @@ public class PillarPuzzleController : MonoBehaviour
             ResetPuzzle();
     }
 
-    bool DoneWithColor(ColorRGB color)
+    bool DoneWithMaterial(ColorRGB color)
     {
         for (int i = 0; i < pillars.Length; i++)
         {
-            if (pillars[i].color == color && !pillars[i].activated)
+            if (pillars[i].Color == color && !pillars[i].Activated)
                 return false;
         }
         return true;
@@ -63,10 +70,10 @@ public class PillarPuzzleController : MonoBehaviour
         timerRunning = false;
         timer = initialTime;
         for (int i = 0; i < pillars.Length; i++)
-            if (pillars[i].activated)
+            if (pillars[i].Activated)
             {
-                pillars[i].activated = false;
-                puzzleManager.SetPillarStatus(pillars[i], false);
+                pillars[i].Activated = false;
+                puzzleManager.SetPillarStatus(pillars[i], colorToMaterial[pillars[i].Color], false);
             }
             
     }
@@ -75,18 +82,18 @@ public class PillarPuzzleController : MonoBehaviour
     {
         for (int i = 0; i < pillars.Length; i++)
         {
-            if (pillar.transform == pillars[i].transform && !pillars[i].activated)
+            if (pillar.transform == pillars[i].Transform && !pillars[i].Activated)
             {
                 if (!timerRunning)
                 {
                     timerRunning = true;
-                    prevColor = pillars[i].color;
+                    prevColor = pillars[i].Color;
                 }
 
-                if (pillars[i].color == prevColor || DoneWithColor(prevColor))
+                if (pillars[i].Color == prevColor || DoneWithMaterial(prevColor))
                 {
-                    pillars[i].activated = true;
-                    puzzleManager.SetPillarStatus(pillars[i], true);
+                    pillars[i].Activated = true;
+                    puzzleManager.SetPillarStatus(pillars[i], colorToMaterial[pillars[i].Color], true);
                 }
                 else
                 {
@@ -94,7 +101,7 @@ public class PillarPuzzleController : MonoBehaviour
                     return;
                 }
 
-                if (DoneWithColor(ColorRGB.Red) && DoneWithColor(ColorRGB.Green) && DoneWithColor(ColorRGB.Blue))
+                if (DoneWithMaterial(ColorRGB.Red) && DoneWithMaterial(ColorRGB.Green) && DoneWithMaterial(ColorRGB.Blue))
                 {
                     timerRunning = false;
                     if (solvedDoor != null)

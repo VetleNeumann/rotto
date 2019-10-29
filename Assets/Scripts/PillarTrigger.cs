@@ -11,13 +11,9 @@ public class PillarTrigger : MonoBehaviour
         puzzleController = GetComponentInParent<PillarPuzzleController>();
     }
 
-    void OnTriggerEnter2D(Collider2D collider)
-    {
-        puzzleController.PillarHit(transform);
-    }
-
 	void OnTriggerEnter(Collider collider)
 	{
+		Debug.Log("Hit!");
 		puzzleController.PillarHit(transform);
 	}
 }

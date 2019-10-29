@@ -4,14 +4,16 @@ using UnityEngine;
 
 public struct Pillar
 {
-    public Pillar(Transform transform, ColorRGB color)
-    {
-        this.transform = transform;
-        this.color = color;
-        this.activated = false;
-    }
+	public Transform Transform { get; }
 
-    public Transform transform;
-    public ColorRGB color;
-    public bool activated;
+	public ColorRGB Color { get; }
+
+	public bool Activated { get; set; }
+
+	public Pillar(Transform transform, ColorRGB color)
+    {
+        this.Transform = transform;
+        this.Color = color;
+        this.Activated = false;
+    }
 }
