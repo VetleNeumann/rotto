@@ -13,7 +13,6 @@ public class PillarTrigger : MonoBehaviour
 
 	void OnTriggerEnter(Collider collider)
 	{
-		Debug.Log("Hit!");
 		puzzleController.PillarHit(transform);
 	}
 }
