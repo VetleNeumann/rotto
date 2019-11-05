@@ -11,6 +11,9 @@ public class PlayerController : MonoBehaviour
 	[SerializeField]
     float accelrate;
 
+    [SerializeField]
+    float maxSpeed;
+
 	[SerializeField]
 	float batonRotateInertia;
 
@@ -57,6 +60,6 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 inputs = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
 
-        playerManager.Move(inputs * accelrate);
+        playerManager.Move(inputs, accelrate, maxSpeed);
     }
 }
