@@ -21,25 +21,11 @@ public class PillarPuzzleManager : MonoBehaviour
     public void SetPillarStatus(Pillar pillar, PillarColor pillarColor, bool enabled)
     {
 		// Needs to be changed to 3D
-		Renderer rendere = pillar.Transform.GetComponent<Renderer>();
-        Color newColor = new Color();
-        switch (pillar.Color)
-        {
-            case ColorRGB.Red:
-                newColor = new Color(colorDiff, 0f, 0f);
-                break;
-            case ColorRGB.Green:
-                newColor = new Color(0f, colorDiff, 0f);
-                break;
-            case ColorRGB.Blue:
-                newColor = new Color(0f, 0f, colorDiff);
-                break;
-        }
+		MeshRenderer renderer = pillar.Transform.GetComponent<MeshRenderer>();
 
-        if (enabled)
-            rendere.material = pillarColor.After;
-        else
-			rendere.material = pillarColor.Before;
-
+		if (enabled)
+			renderer.materials = new[] { renderer.materials[0], pillarColor.After, renderer.materials[2] };
+		else
+			renderer.materials = new[] { renderer.materials[0], pillarColor.Before, renderer.materials[2] };
 	}
 }

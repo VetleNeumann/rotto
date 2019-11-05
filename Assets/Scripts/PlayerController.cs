@@ -26,7 +26,7 @@ public class PlayerController : MonoBehaviour
     bool extendBaton = false;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         playerManager = GetComponent<PlayerManager>();
         cameraManager = Camera.main.GetComponent<CameraManager>();

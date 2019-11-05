@@ -15,11 +15,14 @@ public class PlayerManager : MonoBehaviour
 	float springCharge;
 	bool springCharing = false;
 
-	// Start is called before the first frame update
-	void Start()
+
+	private void Awake()
 	{
 		rigidBody = gameObject.GetComponent<Rigidbody>();
+	}
 
+	void Start()
+	{
 		foreach (Transform child in transform)
 		{
 			switch (child.name)
@@ -59,13 +62,14 @@ public class PlayerManager : MonoBehaviour
 	public void BatonState(bool extended, float length, float inertia)
 	{
 		batonExtend = Mathf.Lerp(batonExtend, extended ? length : 0.5f, inertia);
-		baton.position = body.position + baton.forward * batonExtend;
+		baton.position = body.position + baton.forward * batonExtend + baton.forward / 2f;
 		baton.localScale = new Vector3(1, 1, batonExtend);
 	}
 
 	public void Move(Vector2 delta)
 	{
-		rigidBody.AddForce(new Vector3(delta.x, 0, delta.y));
+		transform.Translate(new Vector3(delta.x, 0, delta.y) * Time.deltaTime);
+		//rigidBody.AddForce(new Vector3(delta.x, 0, delta.y), ForceMode.Impulse);
 	}
 
 	public void UnleashSpring(float step)
