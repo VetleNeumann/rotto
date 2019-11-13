@@ -11,7 +11,7 @@ public class ButtonCollider : MonoBehaviour
         controller = GetComponentInParent<ControllerBase>();
     }
 
-    void OnCollisionEnter2D()
+    void OnCollisionEnter()
     {
         controller.ButtonPressed();
     }

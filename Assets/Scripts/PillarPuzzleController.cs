@@ -104,7 +104,7 @@ public class PillarPuzzleController : MonoBehaviour
                 if (DoneWithMaterial(ColorRGB.Red) && DoneWithMaterial(ColorRGB.Green) && DoneWithMaterial(ColorRGB.Blue))
                 {
                     timerRunning = false;
-					if (solvedDoor != null && !solvedDoor.Locked)
+					if (solvedDoor != null)
 						solvedDoor.Solve();
 					else
 						ResetPuzzle();
