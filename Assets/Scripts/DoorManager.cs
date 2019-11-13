@@ -7,6 +7,11 @@ public class DoorManager : MonoBehaviour
     Transform leftDoor;
     Transform rightDoor;
 
+    Renderer[] buttons;
+    Light[] lights;
+    [SerializeField]
+    Material matOpen, matLocked, matPuzzle, matEnemies;
+
     //How much of the door should remain in sight
     float doorRemain = 0.25f;
     float closedTolerance = 0.05f;
@@ -16,9 +21,16 @@ public class DoorManager : MonoBehaviour
     Vector3 initialPosLeft;
     Vector3 initialPosRight;
 
+    bool blinking = false;
+
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
+        buttons = new Renderer[2];
+        lights = new Light[2];
+
+        int buttonIndex = 0;
+        int lightIndex = 0;
         foreach (Transform child in transform)
         {
             switch (child.name)
@@ -34,12 +46,50 @@ public class DoorManager : MonoBehaviour
                 default:
                     break;
             }
+            if (child.tag.Equals("Button"))
+            {
+                buttons[buttonIndex] = child.GetComponent<Renderer>();
+                buttonIndex++;
+            }
+            else if (child.tag.Equals("Light"))
+            {
+                lights[lightIndex] = child.GetComponent<Light>();
+                lightIndex++;
+            }
         }
     }
 
     void Update()
     {
         
+    }
+
+    public void SetStatus(DoorStatus status)
+    {
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            switch (status)
+            {
+                case DoorStatus.Open:
+                    buttons[i].material = matOpen;
+                    lights[i].color = Color.green;
+                    break;
+                case DoorStatus.Locked:
+                    buttons[i].material = matLocked;
+                    lights[i].color = Color.red;
+                    break;
+                case DoorStatus.Puzzle:
+                    buttons[i].material = matPuzzle;
+                    lights[i].color = Color.blue;
+                    break;
+                case DoorStatus.Enemies:
+                    buttons[i].material = matEnemies;
+                    lights[i].color = Color.red;
+                    break;
+                default:
+                    break;
+            }
+        }        
     }
 
     public bool MoveDoor(bool open)
@@ -60,5 +110,41 @@ public class DoorManager : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    public IEnumerator BlinkLight(float duration = 0.2f, int blinks = 3)
+    {
+        if (!blinking)
+        {
+            blinking = true;
+            for (int i = 0; i < blinks * 2; i++)
+            {
+                for (int o = 0; o < lights.Length; o++)
+                {
+                    lights[o].enabled = !lights[o].enabled;
+                }
+                yield return new WaitForSeconds(duration);
+            }
+            blinking = false;
+        }
+        yield return new WaitForSeconds(0);
+    }
+
+    public IEnumerator UnlockDoor()
+    {
+        ToggleLights(false);
+        yield return new WaitForSeconds(0.25f);
+        SetStatus(DoorStatus.Open);
+        ToggleLights(true);
+        //play sound
+
+    }
+
+    public void ToggleLights(bool on)
+    {
+        for (int i = 0; i < lights.Length; i++)
+        {
+            lights[i].enabled = on;
+        }
     }
 }
