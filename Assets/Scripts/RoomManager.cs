@@ -12,6 +12,7 @@ public class RoomManager : MonoBehaviour
 	public event Action RoomCleared;
 
 	List<BaseEnemy> enemies = new List<BaseEnemy>();
+    List<Renderer> renderers = new List<Renderer>();
 
     void Start()
     {
@@ -25,7 +26,13 @@ public class RoomManager : MonoBehaviour
 				enemies.Add(enemy);
 				enemy.SetRoom(this);
 			}
+
+            Renderer renderer = transform.GetChild(i).GetComponent<Renderer>();
+            if (renderer != null)
+                renderers.Add(renderer);
 		}
+
+        //StartCoroutine(Fade(true));
     }
 
     void Update()
@@ -33,7 +40,28 @@ public class RoomManager : MonoBehaviour
         
     }
 
-	public void TogglePlayer(PlayerController player)
+    public IEnumerator Fade(bool fadeOut, float fadeRate = 0.1f)
+    {
+        float alpha = fadeOut ? 1f : 0f;
+        float goal  = fadeOut ? 0f : 1f;
+        while (alpha != goal)
+        {
+            //Debug.Log(alpha);
+            alpha = Mathf.Lerp(alpha, goal, fadeRate);
+            if (Mathf.Abs(alpha - goal) < 0.05f)
+                alpha = goal;
+            foreach (Renderer renderer in renderers)
+            {
+                Color color = renderer.material.color;
+                color.a = alpha;
+                renderer.material.color = color;
+            }
+            yield return new WaitForSeconds(0);
+        }
+    }
+
+
+    public void TogglePlayer(PlayerController player)
 	{
 		PlayerInRoom = !PlayerInRoom;
 
@@ -59,4 +87,9 @@ public class RoomManager : MonoBehaviour
 		if (enemies.Count == 0)
 			RoomCleared();
 	}
+
+    void SetObjectAlpha(float alpha)
+    {
+
+    }
 }
