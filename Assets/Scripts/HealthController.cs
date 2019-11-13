@@ -11,18 +11,15 @@ public class HealthController : MonoBehaviour
     void Start()
     {
         //healthManager.SetHealth(100);
-        
     }
 
     // Update is called once per frame
     
-     void OnCollisionEnter(Collision col)
-    {
-        if (col.gameObject.name == "weapon")
-        {
-            healthManager.AddHealth(1);
-        }
-    }
-
-    
+    void OnCollisionEnter(Collision col)
+	{
+		if (col.gameObject.name == "weapon")
+		{
+			healthManager.AddHealth(1);
+		}
+	}
 }
