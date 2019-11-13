@@ -35,13 +35,13 @@ public class RoomController : MonoBehaviour
 		if (roomManager.PlayerInRoom && !roomManager.IsRoomCleared)
 		{
 			for (int i = 0; i < doors.Count; i++)
-				doors[i].LockDoor();
+				doors[i].EnemyLock();
 		}
 	}
 
 	void RoomCleared()
 	{
 		for (int i = 0; i < doors.Count; i++)
-			doors[i].UnlockDoor();
+			doors[i].EnemyUnlock();
 	}
 }

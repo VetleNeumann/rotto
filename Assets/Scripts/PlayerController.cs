@@ -7,7 +7,9 @@ public class PlayerController : MonoBehaviour
 {
     PlayerManager playerManager;
     CameraManager cameraManager;
-    
+
+    public int keys = 0;
+
 	[SerializeField]
     float accelrate;
 
