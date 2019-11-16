@@ -42,6 +42,7 @@ public class PlayerController : MonoBehaviour
     {
         BatonControl();
         MovementControl();
+		MinimapControl();
     }
 
     void BatonControl()
@@ -64,4 +65,9 @@ public class PlayerController : MonoBehaviour
 
         playerManager.Move(inputs, accelrate, maxSpeed);
     }
+
+	void MinimapControl()
+	{
+		playerManager.ToggleMinimap(Input.GetKey(KeyCode.Space));
+	}
 }
