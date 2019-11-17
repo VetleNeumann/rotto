@@ -6,24 +6,89 @@ using UnityEditor;
 [CustomEditor(typeof(RoomFixer))]
 public class RoomEditor : Editor
 {
+    //I couldn't find a way to have a text field for these,
+    //and spending more time on it would be wasting time sorry
+    float wallHeight = 3.5f;
+    float wallThickness = 0.75f;
+
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
 
-        RoomFixer inspector = (RoomFixer)target;
-        if (GUILayout.Button("Adjust All Rooms' Walls"))
-            AdjustWallPos(true);
-        if (GUILayout.Button("Adjust Current Wall"))
-            AdjustWallPos(false);
+        //Add button for spawning wall and door
 
+        if (GUILayout.Button("Adjust All Rooms' Walls Scale"))
+            AdjustWallScale();
+        if (GUILayout.Button("Set Well Length Floor Length"))
+            WallLengthFloorLength();
+
+        EditorGUILayout.Space();
+
+        RoomFixer inspector = (RoomFixer)target;
+        if (GUILayout.Button("Adjust All Rooms' Walls Positions"))
+            AdjustWallPos(true);
+        if (GUILayout.Button("Adjust Current Wall Position"))
+            AdjustWallPos(false);
+        
+        EditorGUILayout.Space();
+
+        if (GUILayout.Button("NorthWest"))
+            AdjustWallPos(false, Compass.NorthWest);
         if (GUILayout.Button("NorthEast"))
             AdjustWallPos(false, Compass.NorthEast);
         if (GUILayout.Button("SouthEast"))
             AdjustWallPos(false, Compass.SouthEast);
         if (GUILayout.Button("SouthWest"))
             AdjustWallPos(false, Compass.SouthWest);
-        if (GUILayout.Button("NorthWest"))
-            AdjustWallPos(false, Compass.NorthWest);
+    }
+
+    void AdjustWallScale()
+    {
+        Transform selected = Selection.transforms[0];
+        foreach (Transform child in selected.parent.transform)
+        {
+            if (child.tag.Equals("Wall"))
+            {
+                //North/South wall, Z is thickness
+                if (child.localScale.x > child.localScale.z)
+                {
+                    child.localScale = new Vector3(child.localScale.x, wallHeight, wallThickness);
+                }
+                //West/East wall, X is thickness
+                if (child.localScale.x < child.localScale.z)
+                {
+                    child.localScale = new Vector3(wallThickness, wallHeight, child.localScale.z);
+                }
+            }
+        }
+    }
+
+    void WallLengthFloorLength()
+    {
+        Transform selected = Selection.transforms[0];
+
+        Transform floor = selected;
+        foreach (Transform child in selected.parent.transform)
+        {
+            if (child.tag.Equals("Floor"))
+            {
+                floor = child;
+                break;
+            }
+        }
+
+        //if floor is still wall, not floor (aka no floor sibling)
+        if (floor == selected)
+        {
+            Debug.LogError("No floor found.");
+            return;
+        }
+
+        if (selected.localScale.x > selected.localScale.z)
+            selected.localScale = new Vector3(floor.localScale.x * 5f * 2f, selected.localScale.y, selected.localScale.z);
+        if (selected.localScale.x < selected.localScale.z)
+            selected.localScale = new Vector3(selected.localScale.x, selected.localScale.y, floor.localScale.z * 5f * 2f);
+        AdjustWallPos(false);
     }
 
     void AdjustWallPos(bool allWalls)
