@@ -22,7 +22,8 @@ public class DoorController : ControllerBase
     bool cleared = true;
     [SerializeField]
 	bool locked = false;
-	bool solved = false;
+    [SerializeField]
+	bool solved = true;
 
     // Start is called before the first frame update
     void Awake()
@@ -33,7 +34,12 @@ public class DoorController : ControllerBase
 
     void Start()
     {
-        doorManager.SetStatus(DoorStatus.Puzzle);
+        if (solved == false)
+            doorManager.SetStatus(DoorStatus.Puzzle);
+        else if (locked == true)
+            doorManager.SetStatus(DoorStatus.Locked);
+        else
+            doorManager.SetStatus(DoorStatus.Open);
     }
 
     // Update is called once per frame
