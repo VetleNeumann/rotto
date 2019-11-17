@@ -10,6 +10,7 @@ public class PlayerManager : MonoBehaviour
 	Transform body;
 
 	Rigidbody rigidBody;
+	Projector projector;
 
 	float batonExtend;
 	float springCharge;
@@ -19,6 +20,7 @@ public class PlayerManager : MonoBehaviour
 	private void Awake()
 	{
 		rigidBody = gameObject.GetComponent<Rigidbody>();
+		projector = gameObject.GetComponentInChildren<Projector>();
 	}
 
 	void Start()
@@ -78,6 +80,11 @@ public class PlayerManager : MonoBehaviour
     public void UnleashSpring(float step)
 	{
 		StartCoroutine(SpringRoutine(step));
+	}
+
+	public void ToggleMinimap(bool state)
+	{
+		projector.enabled = state;
 	}
 
 	Vector3 GetMousePos(Ray cameraRay)
