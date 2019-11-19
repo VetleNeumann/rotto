@@ -96,7 +96,8 @@ public class DoorController : ControllerBase
 	public void TraverseDoor(PlayerController player)
 	{
         //doorManager.ToggleLights(true);
-        StartCoroutine(ToggleDoorAfterDelay(false, 0.15f));
+        StartCoroutine(ToggleDoorAfterDelay(false, 0.30f));
+        StartCoroutine(ToggleLightAfterDelay(true, 0.4f));
 
         for (int i = 0; i < connectedRooms.Count; i++)
 			connectedRooms[i].TogglePlayer(player);
