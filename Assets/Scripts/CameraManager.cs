@@ -5,9 +5,16 @@ using UnityEngine;
 public class CameraManager : MonoBehaviour
 {
     GameObject rotto;
-    public float yOffset = 11f;
-    public float zOffset = 0f;
-    public float xRotation = 80f;
+    [SerializeField]
+    float yOffset = 11f;
+    [SerializeField]
+    float xOffset = 0f;
+    [SerializeField]
+    float zOffset = 0f;
+    [SerializeField]
+    float xRotation = 80f;
+    [SerializeField]
+    bool diagonalView = false;
 
 	Renderer prevRenderer;
 
@@ -15,20 +22,23 @@ public class CameraManager : MonoBehaviour
     void Start()
     {
         rotto = GameObject.FindGameObjectWithTag("Player");
+        rotto.GetComponent<PlayerController>().diagonalView = diagonalView;
     }
 
     void OnValidate()
     {
 		rotto = GameObject.FindGameObjectWithTag("Player");
-		transform.rotation = Quaternion.Euler(new Vector3(xRotation, 0, 0));
+		transform.rotation = Quaternion.Euler(new Vector3(xRotation, diagonalView ? 45f : 0, 0));
 		transform.position = rotto.transform.position + new Vector3(0, yOffset, zOffset);
+
+        rotto.GetComponent<PlayerController>().diagonalView = diagonalView;
 	}
 
     // Update is called once per frame
     void Update()
     {
 		// Camera follow rotto
-        transform.position = rotto.transform.position + new Vector3(0, yOffset, zOffset);
+        transform.position = rotto.transform.position + new Vector3(xOffset, yOffset, zOffset);
 
 		WallFade();
     }
