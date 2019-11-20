@@ -6,11 +6,9 @@
    }
    SubShader {
       Pass {      
-		Blend One OneMinusSrcAlpha // attenuate color in framebuffer 
-		//Blend One One
-            // by 1 minus alpha of _ShadowTex 
-         ZWrite Off
-         Offset -1, -1
+		Blend One OneMinusSrcAlpha
+		ZWrite Off
+        Offset -1, -1
          
          CGPROGRAM
  
@@ -30,6 +28,7 @@
          struct vertexOutput {
             float4 pos : SV_POSITION;
             float4 posProj : TEXCOORD0;
+			float4 worldPos : TEXCOORD1;
          };
  
          vertexOutput vert(vertexInput input) 
@@ -38,6 +37,7 @@
  
             output.posProj = mul(unity_Projector, input.vertex);
             output.pos = UnityObjectToClipPos(input.vertex);
+			output.worldPos = input.vertex;
             return output;
          }
  
