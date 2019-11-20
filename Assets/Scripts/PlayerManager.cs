@@ -83,7 +83,8 @@ public class PlayerManager : MonoBehaviour
 
 	public void ToggleMinimap(bool state)
 	{
-		projector.enabled = state;
+		if (projector != null)
+			projector.enabled = state;
 	}
 
 	Vector3 GetMousePos(Ray cameraRay)

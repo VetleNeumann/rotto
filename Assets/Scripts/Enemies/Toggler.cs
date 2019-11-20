@@ -7,9 +7,9 @@ using UnityEngine.AI;
 public class Toggler : BaseEnemy
 {
 	[SerializeField]
-	int ToggleInterval;
+	int toggleInterval;
 	[SerializeField]
-	int Speed;
+	int speed;
 
 	[SerializeField]
 	Material onMaterial;
@@ -32,7 +32,7 @@ public class Toggler : BaseEnemy
 		if (target != null)
 		{
 			Vector3 dir = (target.transform.position - transform.position).normalized;
-			transform.Translate(new Vector3(dir.x, 0, dir.z) * Speed * Time.deltaTime);
+			transform.Translate(new Vector3(dir.x, 0, dir.z) * speed * Time.deltaTime);
 		}
     }
 
@@ -70,7 +70,7 @@ public class Toggler : BaseEnemy
 				renderer.material = offMaterial;
 
 			vulnerable = !vulnerable;
-			yield return new WaitForSeconds(ToggleInterval);
+			yield return new WaitForSeconds(toggleInterval);
 		}
 	}
 }

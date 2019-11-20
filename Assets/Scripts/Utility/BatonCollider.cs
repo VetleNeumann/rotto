@@ -6,6 +6,6 @@ public class BatonCollider : MonoBehaviour
 {
 	private void OnCollisionEnter(Collision collision)
 	{
-		collision.gameObject.GetComponent<BaseEnemy>()?.Hit(1);
+		//collision.gameObject.GetComponent<BaseEnemy>()?.Hit(1);
 	}
 }
