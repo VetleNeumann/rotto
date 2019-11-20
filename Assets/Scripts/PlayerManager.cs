@@ -67,13 +67,15 @@ public class PlayerManager : MonoBehaviour
 		baton.localScale = new Vector3(1, 1, batonExtend);
 	}
 
-    public void Move(Vector2 delta, float maxSpeed, float accelRate)
+    public void Move(Vector2 inputs, float maxSpeed, float accelRate)
     {
-        Vector3 deltaMovement = new Vector3(delta.x, 0, delta.y) * accelRate * Time.deltaTime;
-        if (deltaMovement.magnitude > maxSpeed * Time.deltaTime)
-            deltaMovement = deltaMovement.normalized * maxSpeed * Time.deltaTime;
+        Vector3 deltaForce = new Vector3(inputs.x, 0, inputs.y) * accelRate;
+        if (inputs.Equals(Vector2.zero))
+            deltaForce = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z) * -accelRate * 0.25f;
 
-        transform.Translate(deltaMovement);
+        rigidBody.AddForce(deltaForce);
+        if (rigidBody.velocity.magnitude > maxSpeed)
+            rigidBody.velocity = rigidBody.velocity.normalized * maxSpeed;
     }
 
     public void UnleashSpring(float step)
