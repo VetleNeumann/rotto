@@ -9,8 +9,9 @@ public class PlayerController : MonoBehaviour
     CameraManager cameraManager;
 
     public int keys = 0;
+    public bool diagonalView = false;
 
-	[SerializeField]
+    [SerializeField]
     float accelrate;
 
     [SerializeField]
@@ -62,6 +63,11 @@ public class PlayerController : MonoBehaviour
     void MovementControl()
     {
         Vector2 inputs = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+        if (diagonalView && (inputs.x != 0 || inputs.y != 0))
+        {
+            inputs = new Vector2(inputs.x + inputs.y, -inputs.x + inputs.y).normalized * inputs.magnitude;
+        }
+            
 
         playerManager.Move(inputs, accelrate, maxSpeed);
     }

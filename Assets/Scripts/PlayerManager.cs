@@ -16,7 +16,6 @@ public class PlayerManager : MonoBehaviour
 	float springCharge;
 	bool springCharing = false;
 
-
 	private void Awake()
 	{
 		rigidBody = gameObject.GetComponent<Rigidbody>();
