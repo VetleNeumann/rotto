@@ -10,6 +10,7 @@ public class PlayerManager : MonoBehaviour
 	Transform body;
 
 	Rigidbody rigidBody;
+    Rigidbody batonRigidBody;
 	Projector projector;
 
 	float batonExtend;
@@ -39,7 +40,9 @@ public class PlayerManager : MonoBehaviour
 					break;
 			}
 		}
-	}
+
+        batonRigidBody = baton.GetComponent<Rigidbody>();
+    }
 
 	public void BatonRotate(Ray cameraRay, float maxMove, float inertia, bool chargeSpring)
 	{
@@ -52,12 +55,25 @@ public class PlayerManager : MonoBehaviour
 		float moveLength = Mathf.Abs(moveDelta);
 		float moveAngle = Mathf.MoveTowardsAngle(batonAngle, mouseAngle, Mathf.Min(maxMove, moveLength * inertia));
 
-		float springDir = Mathf.Clamp(moveDelta * inertia, -maxMove, maxMove);
-		if (chargeSpring)
-			springCharge += springDir;
+        float springDir = moveDelta * inertia;
+		//springDir = Mathf.Clamp(moveDelta * inertia, -maxMove, maxMove);
+        if (chargeSpring)
+            Mathf.Clamp(moveDelta * inertia, -maxMove, maxMove);
+            //springCharge += springDir;
 
-		if (!springCharing)
-			batonPivot.localRotation = Quaternion.Euler(0, moveAngle, 0);
+        if (!springCharing)
+        {
+            if (springDir == 0)
+            {
+                //Deaccelerate
+            }
+            else
+            {
+                //Accelerate / Clamp speed
+                //rigidBody.AddTorque()
+            }
+        }
+        //baton.localRotation = Quaternion.Euler(0, moveAngle, 0);
 	}
 
 	public void BatonState(bool extended, float length, float inertia)
