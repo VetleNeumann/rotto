@@ -15,7 +15,7 @@ public class PlayerManager : MonoBehaviour
 
 	float batonExtend;
 	float springCharge;
-	bool springCharing = false;
+	bool springCharging = false;
 
 	private void Awake()
 	{
@@ -29,9 +29,10 @@ public class PlayerManager : MonoBehaviour
 		{
 			switch (child.name)
 			{
+                //Baton Pivot is the gameobject with colliders and a rigidbody.
 				case "Baton Pivot":
 					batonPivot = child;
-					baton = batonPivot.GetComponentInChildren<Transform>();
+					baton = batonPivot.GetChild(0).GetComponent<Transform>();
 					break;
 				case "Body":
 					body = child;
@@ -41,15 +42,24 @@ public class PlayerManager : MonoBehaviour
 			}
 		}
 
-        batonRigidBody = baton.GetComponent<Rigidbody>();
+        batonRigidBody = batonPivot.GetComponent<Rigidbody>();
+
+        //batonRigidBody.AddTorque(new Vector3(0, 10, 0), ForceMode.VelocityChange);
+        
     }
 
 	public void BatonRotate(Ray cameraRay, float maxMove, float inertia, bool chargeSpring)
 	{
+
 		Vector3 position = GetMousePos(cameraRay);
 
 		float mouseAngle = Vector3.SignedAngle(position - new Vector3(transform.position.x, 0, transform.position.z), Vector3.forward, Vector3.down);
-		float batonAngle = Vector3.SignedAngle(baton.forward, Vector3.forward, Vector3.down);
+        //float batonAngle = Vector3.SignedAngle(batonPivot.rotation.eulerAngles, Vector3.up, Vector3.up);
+        float batonAngle = batonPivot.rotation.eulerAngles.y;
+        if (batonAngle >= 360)
+            batonAngle -= Mathf.Repeat(360f, batonAngle);
+        if (batonAngle > 180)
+            batonAngle -= 360;
 
 		float moveDelta = Mathf.DeltaAngle(batonAngle, mouseAngle);
 		float moveLength = Mathf.Abs(moveDelta);
@@ -58,29 +68,37 @@ public class PlayerManager : MonoBehaviour
         float springDir = moveDelta * inertia;
 		//springDir = Mathf.Clamp(moveDelta * inertia, -maxMove, maxMove);
         if (chargeSpring)
-            Mathf.Clamp(moveDelta * inertia, -maxMove, maxMove);
-            //springCharge += springDir;
+            springCharge += Mathf.Clamp(springDir, -maxMove, maxMove);
 
-        if (!springCharing)
+        else if (!chargeSpring)
         {
-            if (springDir == 0)
+            if (Mathf.Abs(springDir) < maxMove)
             {
                 //Deaccelerate
+                float currentDirection = batonRigidBody.angularVelocity.y;
+                batonRigidBody.AddTorque(0f, -5 * batonRigidBody.angularVelocity.y/springDir, 0f);
+                if (currentDirection != Mathf.Sign(batonRigidBody.angularVelocity.y))
+                    batonRigidBody.angularVelocity = Vector3.zero;
             }
             else
             {
                 //Accelerate / Clamp speed
-                //rigidBody.AddTorque()
+                batonRigidBody.AddTorque(new Vector3(0f, springDir, 0f));
+
+                Vector3 angVel = batonRigidBody.angularVelocity;
+                batonRigidBody.angularVelocity = new Vector3(angVel.x, Mathf.Clamp(angVel.y, -maxMove, maxMove), angVel.z);
             }
         }
-        //baton.localRotation = Quaternion.Euler(0, moveAngle, 0);
-	}
+        
+        //batonPivot.localRotation = Quaternion.Euler(0, batonPivot.localRotation.eulerAngles.x, 0);
+        //baton.localRotation = Quaternion.Euler(90, 0, 0);
+    }
 
-	public void BatonState(bool extended, float length, float inertia)
+	public void BatonState(bool extended, float retractedLength, float extendedLength, float inertia)
 	{
-		batonExtend = Mathf.Lerp(batonExtend, extended ? length : 0.5f, inertia);
-		baton.position = body.position + baton.forward * batonExtend + baton.forward / 2f;
-		baton.localScale = new Vector3(1, 1, batonExtend);
+		batonExtend = Mathf.Lerp(batonExtend, extended ? extendedLength : retractedLength, inertia);
+		//baton.position = body.position + batonPivot.forward * batonExtend + batonPivot.forward / 2f;
+		batonPivot.localScale = new Vector3(0.25f, 0.25f, batonExtend);
 	}
 
     public void Move(Vector2 inputs, float maxSpeed, float accelRate)
@@ -113,7 +131,7 @@ public class PlayerManager : MonoBehaviour
 
 	IEnumerator SpringRoutine(float step)
 	{
-		springCharing = true;
+		springCharging = true;
 		while (Mathf.Abs(springCharge) > step * 1.5f)
 		{
 			float springDir = springCharge / Mathf.Abs(springCharge);
@@ -124,7 +142,7 @@ public class PlayerManager : MonoBehaviour
 			yield return new WaitForSeconds(0);
 		}
 
-		springCharing = false;
+		springCharging = false;
 		springCharge = 0;
 	}
 }

@@ -26,7 +26,9 @@ public class PlayerController : MonoBehaviour
 	[SerializeField]
 	float batonMaxMove;
 
-	[SerializeField]
+    [SerializeField]
+    float batonRetractLength;
+    [SerializeField]
 	float batonExtendLength;
 
     bool extendBaton = false;
@@ -37,7 +39,6 @@ public class PlayerController : MonoBehaviour
         playerManager = GetComponent<PlayerManager>();
         cameraManager = Camera.main.GetComponent<CameraManager>();
     }
-
     // Update is called once per frame
     void Update()
     {
@@ -57,7 +58,7 @@ public class PlayerController : MonoBehaviour
 		Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
 		playerManager.BatonRotate(mouseRay, batonMaxMove, batonRotateInertia, chargeSpring);
 
-		playerManager.BatonState(extendBaton, batonExtendLength, batonStateInertian);
+		playerManager.BatonState(extendBaton, batonRetractLength, batonExtendLength, batonStateInertian);
 	}
 
     void MovementControl()
