@@ -27,7 +27,7 @@ public class PlayerManager : MonoBehaviour
 	{
 		foreach (Transform child in transform)
 		{
-			switch (child.name)
+            switch (child.name)
 			{
                 //Baton Pivot is the gameobject with colliders and a rigidbody.
 				case "Baton Pivot":
@@ -36,6 +36,7 @@ public class PlayerManager : MonoBehaviour
 					break;
 				case "Body":
 					body = child;
+                    print(body.name);
 					break;
 				default:
 					break;
@@ -110,6 +111,12 @@ public class PlayerManager : MonoBehaviour
         rigidBody.AddForce(deltaForce);
         if (rigidBody.velocity.magnitude > maxSpeed)
             rigidBody.velocity = rigidBody.velocity.normalized * maxSpeed;
+    }
+
+    public void TurnBody(float turnRate)
+    {
+        float velocityAngle = Vector3.SignedAngle(Vector3.forward, rigidBody.velocity, Vector3.up);
+        body.localRotation = Quaternion.Slerp(body.localRotation, Quaternion.Euler(0, velocityAngle, 0), turnRate);
     }
 
     public void UnleashSpring(float step)

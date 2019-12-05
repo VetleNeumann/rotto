@@ -12,6 +12,9 @@ public class PlayerController : MonoBehaviour
     public bool diagonalView = false;
 
     [SerializeField]
+    float turnRate;
+
+    [SerializeField]
     float accelrate;
 
     [SerializeField]
@@ -68,9 +71,9 @@ public class PlayerController : MonoBehaviour
         {
             inputs = new Vector2(inputs.x + inputs.y, -inputs.x + inputs.y).normalized * inputs.magnitude;
         }
-            
 
         playerManager.Move(inputs, accelrate, maxSpeed);
+        playerManager.TurnBody(turnRate);
     }
 
 	void MinimapControl()

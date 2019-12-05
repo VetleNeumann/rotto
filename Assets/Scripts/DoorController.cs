@@ -105,7 +105,6 @@ public class DoorController : ControllerBase
 
     IEnumerator ToggleDoorAfterDelay(bool open, float delay)
     {
-        print(delay);
 
         yield return new WaitForSeconds(delay);
         if (open && !cleared) { }
