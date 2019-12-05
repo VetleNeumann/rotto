@@ -24,7 +24,7 @@ public class KeyController : MonoBehaviour
 
     void OnTriggerEnter(Collider collider)
     {
-        if (collider.name == "Baton")
+        if (collider.name == "Baton Pivot")
         {
             playerController.keys++;
             keyManager.DeleteKey();
