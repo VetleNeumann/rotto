@@ -7,6 +7,8 @@ public class RoomController : MonoBehaviour
 {
 	[SerializeField]
 	List<DoorController> doors = new List<DoorController>();
+	[SerializeField]
+	Sprite roomMinimap;
 
 	RoomManager roomManager;
 
@@ -40,6 +42,8 @@ public class RoomController : MonoBehaviour
 			for (int i = 0; i < doors.Count; i++)
 				doors[i].EnemyLock();
 		}
+
+		player.SetMinimapSprite(roomMinimap);
 	}
 
 	void RoomCleared()

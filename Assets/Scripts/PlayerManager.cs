@@ -149,6 +149,11 @@ public class PlayerManager : MonoBehaviour
 			projector.enabled = state;
 	}
 
+	public void SetMinimap(Sprite sprite)
+	{
+		projector.material.SetTexture("_ShadowTex", sprite.texture);
+	}
+
 	public void AddHealth(int health)
 	{
 		this.health -= health;

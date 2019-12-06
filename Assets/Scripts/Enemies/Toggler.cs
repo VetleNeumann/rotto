@@ -19,7 +19,6 @@ public class Toggler : BaseEnemy
 	Coroutine coroutine;
 	bool moving = false;
 
-    Transform rotto;
     Transform propellerPivot;
     Transform body;
 
@@ -39,15 +38,13 @@ public class Toggler : BaseEnemy
                     break;
             }
         }
-
-        rotto = GameObject.Find("Rotto").GetComponent<Transform>();
     }
 
     void Update()
     {
 		if (target != null && !Paused)
 		{
-            Vector3 directionVector = body.position - rotto.position;
+            Vector3 directionVector = body.position - target.transform.position;
             directionVector.y = 0;
             float angleBetween = Vector3.SignedAngle(Vector3.back, directionVector, Vector3.up);
             body.rotation = Quaternion.Slerp(body.rotation, Quaternion.Euler(0, angleBetween, 0), bodyTurnRate);

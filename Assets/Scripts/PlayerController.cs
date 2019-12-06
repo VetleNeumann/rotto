@@ -83,6 +83,12 @@ public class PlayerController : MonoBehaviour
 	{
 		playerManager.ToggleMinimap(Input.GetKey(KeyCode.Space));
 	}
+
+	public void SetMinimapSprite(Sprite sprite)
+	{
+		playerManager.SetMinimap(sprite);
+	}
+
     public IEnumerator OnCollisionEnter(Collision collision)
     {
         
