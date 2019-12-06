@@ -43,7 +43,8 @@ public class RoomController : MonoBehaviour
 				doors[i].EnemyLock();
 		}
 
-		player.SetMinimapSprite(roomMinimap);
+		if (roomMinimap != null)
+			player.SetMinimapSprite(roomMinimap);
 	}
 
 	void RoomCleared()
