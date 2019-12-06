@@ -96,7 +96,7 @@ public class BossManager : MonoBehaviour
 
     public void ResetButton(int button)
     {
-
+        GameObject.Find("Button " + button).GetComponent<BossButtonController>().Reset();
     }
 
     public void DeployEnemy(GameObject clawPrefab, GameObject enemyPrefab, Vector3 position)

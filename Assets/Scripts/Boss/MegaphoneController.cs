@@ -44,12 +44,12 @@ public class MegaphoneController : MonoBehaviour
             SpawnSoundWave();
     }
 
-    void SpawnSoundWave()
+    public void SpawnSoundWave()
     {
         manager.SpawnSoundwave(soundwave, spawnDistance);
     }
 
-    void SetDeployedState(bool deploy)
+    public void SetDeployedState(bool deploy)
     {
         if (deploy == deployed)
             return;

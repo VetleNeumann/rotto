@@ -4,17 +4,17 @@ using UnityEngine;
 
 public class CoreManager : MonoBehaviour
 {
+    BossController bossController;
+    BossManager bossManager;
 
-
-    // Start is called before the first frame update
     void Start()
     {
-        
+        bossController = GameObject.Find("Boss").GetComponent<BossController>();
+        bossManager = GameObject.Find("Boss").GetComponent<BossManager>();
     }
-
-    // Update is called once per frame
-    void Update()
+    void OnTriggerEnter()
     {
-        
+        if (bossController.CoreExposed())
+            bossController.CoreHit();
     }
 }

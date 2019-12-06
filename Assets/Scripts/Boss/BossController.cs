@@ -7,6 +7,8 @@ public class BossController : MonoBehaviour
 {
     BossManager manager;
 
+    MegaphoneController megaphoneController;
+
     [SerializeField]
     GameObject clawPrefab;
     [SerializeField]
@@ -28,6 +30,7 @@ public class BossController : MonoBehaviour
     {
         manager = gameObject.GetComponent<BossManager>();
         enemySpawnCoroutine = StartCoroutine(SpawnEnemies());
+        megaphoneController = GameObject.Find("Megaphone").GetComponent<MegaphoneController>();
     }
 
     // Update is called once per frame
@@ -42,17 +45,35 @@ public class BossController : MonoBehaviour
     public void ButtonPushed(int button)
     {
         StartCoroutine(manager.TurnLayer(button, layerTurnRate));
+        if (CoreExposed())
+            megaphoneController.SetDeployedState(false);
+    }
+
+    void ResetArmour()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            StartCoroutine(manager.TurnLayer(i, layerTurnRate));
+        }
     }
 
     public void CoreHit()
     {
+        ResetArmour();
         bossState++;
         StartCoroutine(ResetButtons());
-        if (bossState == 1) ;
-        if (bossState == 2) ;
+        if (bossState == 1)
+            spawnPercentChance += 10;
+        if (bossState == 2)
+        {
+            megaphoneController.SetDeployedState(true);
+            projectileCoroutine = StartCoroutine(ShootMegaphone());
+        }
+        if (bossState == 3)
+            GameObject.Find("SceneChanger").GetComponent<Animator>().SetTrigger("FadeOut");
     }
 
-    bool CoreExposed()
+    public bool CoreExposed()
     {
         for (int i = 0; i < 4; i++)
             if (!manager.layerStates[i])
@@ -60,12 +81,29 @@ public class BossController : MonoBehaviour
         return true;
     }
 
+    IEnumerator ShootMegaphone()
+    {
+        yield return new WaitForSeconds(2);
+        while (true)
+        {
+            yield return new WaitForSeconds(1);
+            megaphoneController.SpawnSoundWave();
+        }
+    }
+
     IEnumerator ResetButtons()
     {
+        bool[] resetButtons = { false, false, false, false };
         yield return new WaitForSeconds(5);
         for (int i = 0; i < 4; ++i)
         {
-            manager.ResetButton(Random.Range(0, 4));
+            int randomNumber;
+            do
+            {
+                randomNumber = Random.Range(0, 4);
+            } while (resetButtons[randomNumber]);
+            manager.ResetButton(randomNumber);
+            resetButtons[randomNumber] = true;
             yield return new WaitForSeconds(4);
         }
     }
