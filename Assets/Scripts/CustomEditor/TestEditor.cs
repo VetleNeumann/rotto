@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.XR;
 using UnityEngine.XR.WSA.Input;
 
 [CustomEditor(typeof(TestScript))]
@@ -25,7 +28,16 @@ public class TestEditor : Editor
 	List<int> selectedNodes = new List<int>();
 
 	RoomState state = RoomState.Move;
-	bool canAction = true;
+	bool canClick = true;
+	bool meshGenerated = false;
+
+	int spawnRoom = 0;
+	int selectedRoom = -1;
+
+	int minimapWidth = 100;
+	int minimapHeight = 100;
+	int minimapPadding = 10;
+	int minimapWallThickness = 1;
 
 	public override void OnInspectorGUI()
 	{
@@ -67,12 +79,54 @@ public class TestEditor : Editor
 			EditorRoom room = rooms[i];
 
 			EditorGUILayout.BeginHorizontal();
-			GUILayout.Label($"Room {i}: Containing {room.Points.Count} verticies");
+			GUILayout.Label($"Room {i}: {room.Points.Count} verticies");
+
+			if (GUILayout.Button("P"))
+			{
+				if (selectedRoom == i)
+					selectedRoom = -1;
+				else
+					selectedRoom = i;
+			}
 
 			if (GUILayout.Button("Remove"))
+			{
 				rooms.RemoveAt(i);
+				doors.RemoveAt(doors.FindIndex(x => x.Room1 == i || x.Room2 == i));
+			}
 
 			EditorGUILayout.EndHorizontal();
+		}
+
+		if (rooms.Count > 0)
+		{
+			if (GUILayout.Button("Set spawn"))
+				state = RoomState.SetSpawn;
+		}
+
+		if (meshGenerated && GUILayout.Button("Finish Mesh"))
+			FinishMesh();
+
+		GUILayout.Space(10);
+		GUILayout.Label($"Minimap");
+		EditorGUILayout.BeginHorizontal();
+
+		GUILayout.Label($"Size: ");
+		minimapWidth = EditorGUILayout.IntField(minimapWidth);
+		minimapHeight = EditorGUILayout.IntField(minimapHeight);
+
+		EditorGUILayout.EndHorizontal();
+
+		minimapPadding = EditorGUILayout.IntField("Padding", minimapPadding);
+
+		minimapWallThickness = EditorGUILayout.IntField("Wall Thickness", minimapWallThickness);
+
+		if (GUILayout.Button("Generate minimap"))
+		{
+			Texture2D minimap = GenerateMinimap();
+			AssetDatabase.DeleteAsset($"Assets/Minimap.png");
+			File.WriteAllBytes($"{Application.dataPath}/Minimap.png", minimap.EncodeToPNG());
+			AssetDatabase.Refresh();
 		}
 	}
 
@@ -117,12 +171,22 @@ public class TestEditor : Editor
 			if (p2 < 0)
 				p2 = closest.room.Points.Count - 1;
 
+			//Debug.Log($"Room nodes {closest.room.Points.Count} {p1}, {p2}");
 			if (IsDoubleSided(closest.room.Points[p1], closest.room.Points[p2]))
 			{
 				Handles.color = new Color(0.45f, 0.2f, 0.04f); // Brown
 				Handles.CubeHandleCap(2, closest.p, Quaternion.identity, 0.5f, EventType.Repaint);
 				Handles.color = Color.white;
 			}
+		}
+
+		if (selectedNodes.Count > 0 && state == RoomState.CreateRoom)
+		{
+			int closestNode = GetClosestPoint();
+
+			Handles.color = new Color(0.18f, 0.68f, 0.7f, 0.25f); // Light blue
+			Handles.DrawAAConvexPolygon(selectedNodes.Concat(new[] { closestNode }).Select(x => points[x]).ToArray());
+			Handles.color = Color.white;
 		}
 	}
 
@@ -169,10 +233,10 @@ public class TestEditor : Editor
 	void DrawRooms()
 	{
 		for (int i = 0; i < rooms.Count; i++)
-			DrawRoom(rooms[i]);
+			DrawRoom(rooms[i], i);
 	}
 
-	void DrawRoom(EditorRoom room)
+	void DrawRoom(EditorRoom room, int index)
 	{
 		for (int i = 1; i < room.Points.Count; i++)
 		{
@@ -181,7 +245,7 @@ public class TestEditor : Editor
 
 			Handles.color = Color.white;
 			if (IsDoubleSided(p1, p2))
-				Handles.color = Color.gray;
+				Handles.color = Color.black;
 
 			Handles.DrawLine(points[p1], points[p2]);
 		}
@@ -190,9 +254,21 @@ public class TestEditor : Editor
 		int lastP2 = room.Points[0];
 		Handles.color = Color.white;
 		if (IsDoubleSided(lastP1, lastP2))
-			Handles.color = Color.gray;
+			Handles.color = Color.black;
 
 		Handles.DrawLine(points[lastP1], points[lastP2]);
+
+		Handles.color = new Color(0.18f, 0.68f, 0.7f, 0.25f); // Light blue
+		if (state == RoomState.SetSpawn && index == GetClosestRoom())
+			Handles.color = new Color(0.89f, 0.92f, 0.18f, 0.25f); // Light yellow
+
+		if (state != RoomState.SetSpawn && index == spawnRoom)
+			Handles.color = new Color(0.89f, 0.92f, 0.18f, 0.25f); // Light yellow
+
+		if (selectedRoom == index)
+			Handles.color = new Color(0.89f, 0.02f, 0.18f, 0.25f); // Light yellow
+
+		Handles.DrawAAConvexPolygon(room.Points.Select(x => points[x]).ToArray());
 		Handles.color = Color.white;
 	}
 
@@ -227,6 +303,7 @@ public class TestEditor : Editor
 
 			MeshRenderer meshRenderer = roomObject.AddComponent<MeshRenderer>();
 			MeshFilter meshFilter = roomObject.AddComponent<MeshFilter>();
+			roomObject.AddComponent<RoomController>();
 
 			Material defaultMat = Resources.Load<Material>("Default");
 			meshFilter.mesh = GenerateFloor(room);
@@ -237,13 +314,19 @@ public class TestEditor : Editor
 				int p1 = room.Points[i];
 				int p2 = room.Points[i - 1];
 
-				walls.Add((p1, p2));
+				if (p1 < p2)
+					walls.Add((p1, p2));
+				else
+					walls.Add((p2, p1));
 			}
 
 			int lastP1 = room.Points[0];
 			int lastP2 = room.Points[room.Points.Count - 1];
 
-			walls.Add((lastP1, lastP2));
+			if (lastP1 < lastP2)
+				walls.Add((lastP1, lastP2));
+			else
+				walls.Add((lastP2, lastP1));
 		}
 
 		GameObject wallObj = new GameObject();
@@ -251,34 +334,68 @@ public class TestEditor : Editor
 		wallObj.name = "Walls";
 		foreach (var wall in walls)
 		{
-			Vector3 p1 = points[wall.Item1];
-			Vector3 p2 = points[wall.Item2];
+			Vector3 p1 = points[wall.Item1] + Vector3.up / 2f;
+			Vector3 p2 = points[wall.Item2] + Vector3.up / 2f;
+
+			int doorIndex = GetDoor(wall.Item1, wall.Item2);
+			EditorDoor door = default;
+			if (doorIndex != -1)
+				door = doors[doorIndex];
 
 			Vector3 half = (p2 - p1) / 2;
 			float angle = Vector3.SignedAngle(Vector3.right, half.normalized, Vector3.up);
 
-			GameObject wallObject = Instantiate(Resources.Load<GameObject>("Wall"));
-			wallObject.transform.parent = wallObj.transform;
-			wallObject.transform.position = p1 + half;
-			wallObject.transform.localScale = new Vector3(half.magnitude * 2, 2, 0.2f);
-			wallObject.transform.rotation = Quaternion.Euler(0, angle, 0);
+			if (doorIndex == -1)
+			{
+				GameObject wallObject = Instantiate(Resources.Load<GameObject>("Wall"));
+				wallObject.transform.parent = wallObj.transform;
+				wallObject.transform.position = p1 + half;
+				wallObject.transform.localScale = new Vector3(half.magnitude * 2, 2, 0.2f);
+				wallObject.transform.rotation = Quaternion.Euler(0, angle, 0);
+			}
+			else
+			{
+				float doorSize = 1.25f;
+				float doorDistP1 = Vector3.Distance(door.Pos, p1) - doorSize / 2;
+				float doorDistP2 = Vector3.Distance(door.Pos, p2) - doorSize / 2;
+
+				GameObject wallObject = Instantiate(Resources.Load<GameObject>("Wall"));
+				wallObject.transform.parent = wallObj.transform;
+				wallObject.transform.position = p1 + (p2 - p1).normalized * doorDistP1 / 2;
+				wallObject.transform.localScale = new Vector3(doorDistP1, 2, 0.2f);
+				wallObject.transform.rotation = Quaternion.Euler(0, angle, 0);
+
+				wallObject = Instantiate(Resources.Load<GameObject>("Wall"));
+				wallObject.transform.parent = wallObj.transform;
+				wallObject.transform.position = p2 + (p1 - p2).normalized * doorDistP2 / 2;
+				wallObject.transform.localScale = new Vector3(doorDistP2, 2, 0.2f);
+				wallObject.transform.rotation = Quaternion.Euler(0, angle, 0);
+			}
 		}
 
 		GameObject doorObj = new GameObject();
 		doorObj.transform.parent = obj.transform;
 		doorObj.name = "Doors";
-		foreach (EditorDoor door in doors)
+		for (int i = 0; i < doors.Count; i++)
 		{
+			EditorDoor door = doors[i];
+
 			Vector3 p1 = points[door.Node1];
 			Vector3 p2 = points[door.Node2];
 
 			float angle = Vector3.SignedAngle(Vector3.right, (p2 - p1).normalized, Vector3.up);
 
-			GameObject wallObject = Instantiate(Resources.Load<GameObject>("Door"));
-			wallObject.transform.parent = doorObj.transform;
-			wallObject.transform.position = door.Pos;
-			wallObject.transform.rotation = Quaternion.Euler(0, angle, 0);
+			GameObject doorObject = Instantiate(Resources.Load<GameObject>("Door"));
+			doorObject.transform.parent = doorObj.transform;
+			doorObject.transform.position = door.Pos;
+			doorObject.transform.rotation = Quaternion.Euler(0, angle, 0);
+
+			DoorController doorController = doorObject.GetComponent<DoorController>();
+			roomObj.transform.GetChild(door.Room1).GetComponent<RoomController>().AddDoor(doorController);
+			roomObj.transform.GetChild(door.Room2).GetComponent<RoomController>().AddDoor(doorController);
 		}
+
+		meshGenerated = true;
 	}
 
 	void ClearMesh()
@@ -287,6 +404,27 @@ public class TestEditor : Editor
 
 		foreach (Transform child in obj.transform)
 			GameObject.DestroyImmediate(child.gameObject);
+
+		foreach (Transform child in obj.transform)
+			GameObject.DestroyImmediate(child.gameObject);
+
+		meshGenerated = false;
+	}
+
+	void FinishMesh()
+	{
+		GameObject obj = ((TestScript)target).gameObject;
+
+		GameObject mapObj = new GameObject();
+		mapObj.name = "Map";
+
+		for (int i = 0; i < obj.transform.childCount; i++)
+			obj.transform.GetChild(i).parent = mapObj.transform;
+
+		for (int i = 0; i < obj.transform.childCount; i++)
+			obj.transform.GetChild(i).parent = mapObj.transform;
+
+		meshGenerated = false;
 	}
 
 	Mesh GenerateFloor(EditorRoom room)
@@ -303,6 +441,110 @@ public class TestEditor : Editor
 		mesh.RecalculateBounds();
 
 		return mesh;
+	}
+
+	int GetDoor(int p1, int p2)
+	{
+		return doors.FindIndex(x => (x.Node1 == p1 || x.Node1 == p2) && (x.Node2 == p1 || x.Node2 == p2));
+	}
+
+	Texture2D GenerateMinimap()
+	{
+		Texture2D tex = new Texture2D(minimapWidth + minimapPadding, minimapHeight + minimapPadding);
+
+		// Fill background black
+		for (int y = 0; y < minimapHeight + minimapPadding; y++)
+		{
+			for (int x = 0; x < minimapWidth + minimapPadding; x++)
+			{
+				tex.SetPixel(x, y, Color.black);
+			}
+		}
+
+		Vector2 xBounds = new Vector2(points.Min(x => x.x), points.Max(x => x.x));
+		Vector2 yBounds = new Vector2(points.Min(x => x.z), points.Max(x => x.z));
+
+		//Debug.Log(xBounds);
+		//Debug.Log(zBounds);
+		Vector2Int[] minimapPoints = new Vector2Int[points.Count];
+		for (int i = 0; i < points.Count; i++)
+		{
+			Vector3 point = points[i];
+
+			float px = Mathf.InverseLerp(xBounds.x, xBounds.y, point.x);
+			float py = Mathf.InverseLerp(yBounds.x, yBounds.y, point.z);
+
+			//Debug.Log($"Px: {px}, Py: {py}, PosX: {Mathf.RoundToInt(px * minimapWidth + minimapPadding)}, PosY: {Mathf.RoundToInt(py * minimapHeight + minimapPadding)}");
+
+			minimapPoints[i] = new Vector2Int(Mathf.RoundToInt(px * minimapWidth + minimapPadding / 2f), Mathf.RoundToInt(py * minimapHeight + minimapPadding / 2f));
+		}
+
+		foreach (EditorRoom room in rooms)
+		{
+			for (int i = 1; i < room.Points.Count; i++)
+			{
+				Vector2Int p1 = minimapPoints[room.Points[i]];
+				Vector2Int p2 = minimapPoints[room.Points[i - 1]];
+
+				DrawLine(ref tex, p1, p2, minimapWallThickness, Color.white);
+			}
+
+			DrawLine(ref tex, minimapPoints[room.Points[0]], minimapPoints[room.Points[room.Points.Count - 1]], minimapWallThickness, Color.white);
+		}
+
+		foreach (EditorDoor door in doors)
+		{
+			Vector3 point = door.Pos;
+
+			float px = Mathf.InverseLerp(xBounds.x, xBounds.y, point.x);
+			float py = Mathf.InverseLerp(yBounds.x, yBounds.y, point.z);
+
+			int posX = Mathf.RoundToInt(px * minimapWidth + minimapPadding / 2f);
+			int posY = Mathf.RoundToInt(py * minimapHeight + minimapPadding / 2f);
+
+			DrawCircle(ref tex, new Vector2Int(posX, posY), 6, Color.black);
+			//DrawBox(ref tex, new Vector2Int(posX, posY), new Vector2Int(4, minimapWallThickness), Color.black);
+		}
+
+		tex.Apply();
+
+		return tex;
+	}
+
+	void DrawLine(ref Texture2D tex, Vector2Int p1, Vector2Int p2, int thickness, Color col)
+	{
+		Vector2 t = p1;
+		float frac = 1 / Mathf.Sqrt(Mathf.Pow(p2.x - p1.x, 2) + Mathf.Pow(p2.y - p1.y, 2));
+		float ctr = 0;
+
+		while ((int)t.x != (int)p2.x || (int)t.y != (int)p2.y)
+		{
+			t = Vector2.Lerp(p1, p2, ctr);
+			ctr += frac;
+			DrawCircle(ref tex, new Vector2Int((int)t.x, (int)t.y), thickness, col);
+			//tex.SetPixel((int)t.x, (int)t.y, col);
+		}
+	}
+
+	void DrawCircle(ref Texture2D tex, Vector2Int point, int radius, Color col)
+	{
+		float rSquared = radius * radius;
+
+		for (int u = point.x - radius; u < point.x + radius + 1; u++)
+			for (int v = point.y - radius; v < point.y + radius + 1; v++)
+				if ((point.x - u) * (point.x - u) + (point.y - v) * (point.y - v) < rSquared)
+					tex.SetPixel(u, v, col);
+	}
+
+	void DrawBox(ref Texture2D tex, Vector2Int pos, Vector2Int size, Color col)
+	{
+		for (int x = -size.x / 2; x < size.x / 2; x++)
+		{
+			for (int y = -size.y / 2; y < size.y / 2; y++)
+			{
+				tex.SetPixel(pos.x + x, pos.y + y, col);
+			}
+		}
 	}
 
 	void DoEvents()
@@ -338,7 +580,7 @@ public class TestEditor : Editor
 		switch (state)
 		{
 			case RoomState.AddPoint:
-				if (canAction)
+				if (canClick)
 				{
 					int closest = GetClosestPoint();
 					Vector3 point = default;
@@ -353,25 +595,25 @@ public class TestEditor : Editor
 					if (Event.current.control)
 						point = new Vector3(Mathf.Round(point.x), 0, Mathf.Round(point.z));
 
-					points.Insert(closest, point);
+					points.Add(point);
 				}
 
-				canAction = false;
+				canClick = false;
 				if (!Event.current.shift)
 					state = RoomState.Move;
 
 				break;
 			case RoomState.RemovePoint:
-				if (canAction)
+				if (canClick)
 					points.RemoveAt(GetClosestPoint());
 
-				canAction = false;
+				canClick = false;
 				if (!Event.current.shift)
 					state = RoomState.Move;
 
 				break;
 			case RoomState.CreateRoom:
-				if (canAction)
+				if (canClick)
 				{
 					int index = GetClosestPoint();
 
@@ -380,7 +622,9 @@ public class TestEditor : Editor
 
 					if (index == selectedNodes[0] && selectedNodes.Count > 1)
 					{
-						EditorRoom room = new EditorRoom();
+						Vector3 roomPos = selectedNodes.Select(x => points[x]).Aggregate((x, y) => x + y) / selectedNodes.Count;
+
+						EditorRoom room = new EditorRoom(roomPos);
 						room.AddRange(selectedNodes);
 						rooms.Add(room);
 
@@ -389,10 +633,10 @@ public class TestEditor : Editor
 					}
 				}
 
-				canAction = false;
+				canClick = false;
 				break;
 			case RoomState.AddDoor:
-				if (canAction)
+				if (canClick)
 				{
 					var closesPoint = GetClosestLinePoint();
 
@@ -407,25 +651,30 @@ public class TestEditor : Editor
 				}
 
 				state = RoomState.Move;
-				canAction = false;
+				canClick = false;
 				break;
 			case RoomState.RemoveDoor:
-				if (canAction)
+				if (canClick)
 					doors.RemoveAt(GetClosestDoor());
 
-				canAction = false;
+				canClick = false;
 				if (!Event.current.shift)
 					state = RoomState.Move;
 
 				break;
+			case RoomState.SetSpawn:
+				spawnRoom = GetClosestRoom();
+				state = RoomState.Move;
+				break;
 			default:
+				state = RoomState.Move;
 				break;
 		}
 	}
 
 	void MouseUpEvent()
 	{
-		canAction = true;
+		canClick = true;
 	}
 
 	void KeyDownEvent()
@@ -472,6 +721,25 @@ public class TestEditor : Editor
 		return point;
 	}
 
+	int GetClosestRoom()
+	{
+		float dist = float.MaxValue;
+		int point = -1;
+
+		for (int i = 0; i < rooms.Count; i++)
+		{
+			float newDist = Vector2.Distance(Event.current.mousePosition, HandleUtility.WorldToGUIPoint(rooms[i].Pos));
+
+			if (newDist < dist)
+			{
+				dist = newDist;
+				point = i;
+			}
+		}
+
+		return point;
+	}
+
 	(Vector3 p, EditorRoom room, int index) GetClosestLinePoint()
 	{
 		Vector3 point = default;
@@ -505,7 +773,7 @@ public class TestEditor : Editor
 			if (point == default || lastNewDist < pointDist)
 			{
 				point = HandleUtility.ClosestPointToPolyLine(points[lastP1], points[lastP2]);
-				index = lastP1;
+				index = 0;
 				returnRoom = room;
 			}
 		}
@@ -560,6 +828,9 @@ public class TestEditor : Editor
 				foundRooms.Add(i);
 		}
 
+		if (foundRooms.Count != 2)
+			return (-1, -1);
+
 		return (foundRooms[0], foundRooms[1]);
 	}
 }
@@ -572,4 +843,5 @@ enum RoomState
 	CreateRoom,
 	AddDoor,
 	RemoveDoor,
+	SetSpawn,
 }

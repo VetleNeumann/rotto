@@ -18,6 +18,8 @@ public class PlayerManager : MonoBehaviour
 	float springCharge;
 	bool springCharging = false;
 
+	int health = 4;
+
 	private void Awake()
 	{
 		rigidBody = gameObject.GetComponent<Rigidbody>();
@@ -147,6 +149,11 @@ public class PlayerManager : MonoBehaviour
 			projector.enabled = state;
 	}
 
+	public void SetMinimap(Sprite sprite)
+	{
+		projector.material.SetTexture("_ShadowTex", sprite.texture);
+	}
+
 	Vector3 GetMousePos(Ray cameraRay)
 	{
 		Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, LayerMask.GetMask("Ground"));
@@ -196,9 +203,19 @@ public class PlayerManager : MonoBehaviour
             if (light.name == (lightName))
                 {
                 if (lightOn == true)
-                    light.material.color = Color.yellow;
+				{
+					light.material.color = Color.yellow;
+					light.material.SetColor("_EmissionColor", Color.yellow);
+					light.material.EnableKeyword("_EMISSION");
+					light.transform.GetChild(0).gameObject.SetActive(true);
+				}
                 else if (lightOn == false)
-                    light.material.color = Color.black;
+				{
+					light.material.color = Color.black;
+					light.material.SetColor("_EmissionColor", Color.black);
+					light.material.DisableKeyword("_EMISSION");
+					light.transform.GetChild(0).gameObject.SetActive(false);
+				}
 
             }
 

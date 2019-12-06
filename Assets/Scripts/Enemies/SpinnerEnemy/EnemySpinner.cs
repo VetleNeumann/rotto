@@ -23,7 +23,7 @@ public class EnemySpinner : BaseEnemy
     void Update()
     {
         //transform.Rotate(new Vector3(0f, 90f, 0f), 0.1f, Space.Self);
-		if (target != null)
+		if (target != null && !Paused)
 		{
 			Vector3 dir = (target.transform.position - transform.position).normalized;
 			transform.Translate(new Vector3(dir.x, 0, dir.z) * speed * Time.deltaTime);

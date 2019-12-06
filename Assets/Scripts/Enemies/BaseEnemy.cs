@@ -8,6 +8,8 @@ public abstract class BaseEnemy : MonoBehaviour
 
 	protected RoomManager Room { get; private set; }
 
+	protected bool Paused { get; }
+
     public virtual void SetTarget(PlayerController target)
 	{
 
@@ -19,6 +21,11 @@ public abstract class BaseEnemy : MonoBehaviour
 	}
 
 	public virtual void Hit(int damage)
+	{
+
+	}
+
+	public void SetPauseState(bool state)
 	{
 
 	}
