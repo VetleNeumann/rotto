@@ -51,7 +51,9 @@ public class BossButtonController : ControllerBase
 
     public void Reset()
     {
-
+        buttonEnabled = true;
+        buttonRenderer.material = greenMat;
+        buttonLight.enabled = true;
     }
 
     IEnumerator ChangeColor()

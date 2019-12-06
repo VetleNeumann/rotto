@@ -2104,6 +2104,7 @@ MonoBehaviour:
   - {fileID: 8273747236025151370, guid: b85d46183bb75be40867fad4446f1d09, type: 3}
   - {fileID: 3722394301756179031, guid: 1df9fdf7bfab1c64b9dba86d45b6ac0b, type: 3}
   layerTurnRate: 0.02
+  spawnPercentChance: 20
 --- !u!114 &974026996
 MonoBehaviour:
   m_ObjectHideFlags: 0

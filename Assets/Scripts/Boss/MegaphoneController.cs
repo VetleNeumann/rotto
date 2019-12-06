@@ -7,7 +7,7 @@ public class MegaphoneController : MonoBehaviour
 {
     MegaphoneManager manager;
 
-    bool deployed = false;
+    public bool deployed { get; private set; } = false;
 
     [SerializeField]
     float upLength = 10f;

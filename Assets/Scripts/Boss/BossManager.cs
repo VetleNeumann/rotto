@@ -11,6 +11,8 @@ public class BossManager : MonoBehaviour
     //True means open, as in core exposed
     public bool[] layerStates { get; private set; } = new bool[4];
 
+    BossButtonController[] buttons = new BossButtonController[4];
+
     [SerializeField]
     float headTurnRate;
 
@@ -40,6 +42,9 @@ public class BossManager : MonoBehaviour
                     break;
             }
         }
+
+        for (int i = 0; i < 4; ++i)
+            buttons[i] = GameObject.Find("Button " + i.ToString()).GetComponent<BossButtonController>();
 
         for (int i = 0; i < layerStates.Length; ++i)
             layerStates[i] = false;
@@ -87,6 +92,11 @@ public class BossManager : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
         layer.rotation = Quaternion.Euler(0, goalAngle, 0);
+    }
+
+    public void ResetButton(int button)
+    {
+
     }
 
     public void DeployEnemy(GameObject clawPrefab, GameObject enemyPrefab, Vector3 position)
