@@ -46,7 +46,7 @@ public class PlayerManager : MonoBehaviour
         batonRigidBody = batonPivot.GetComponent<Rigidbody>();
 
         //batonRigidBody.AddTorque(new Vector3(0, 10, 0), ForceMode.VelocityChange);
-        
+        TurnOnLights();
     }
 
 	public void BatonRotate(Ray cameraRay, float maxMove, float inertia, bool chargeSpring)
@@ -152,4 +152,43 @@ public class PlayerManager : MonoBehaviour
 		springCharging = false;
 		springCharge = 0;
 	}
+
+    public void ChangeLightLevel(float lightLevel)
+    {
+        if (lightLevel == 0f)
+        { Changelight("light1", false); Changelight("light2", false); Changelight("light3", false); Changelight("light4", false);//Debug.Log("l0"); 
+        }
+        if (lightLevel==1f)
+        { Changelight("light1", true); Changelight("light2", false); Changelight("light3", false); Changelight("light4", false);//Debug.Log("l1"); 
+        }
+        if (lightLevel == 2f)
+        { Changelight("light1", true); Changelight("light2", true); Changelight("light3", false); Changelight("light4", false); //Debug.Log("l2");
+        }
+        if (lightLevel == 3f)
+        { Changelight("light1", true); Changelight("light2", true); Changelight("light3", true); Changelight("light4", false); //Debug.Log("l3"); 
+        }
+        if (lightLevel == 4f)
+        { Changelight("light1", true); Changelight("light2", true); Changelight("light3", true); Changelight("light4", true); //Debug.Log("l4"); 
+        }
+
+    }
+    public void Changelight(string lightName, bool lightOn)
+    {
+        MeshRenderer[] lights = GetComponentsInChildren<MeshRenderer>();
+        foreach (MeshRenderer light in lights)
+            if (light.name == (lightName))
+                {
+                if (lightOn == true)
+                    light.material.color = Color.yellow;
+                else if (lightOn == false)
+                    light.material.color = Color.black;
+
+            }
+
+    }
+    public void TurnOnLights()
+    {
+        ChangeLightLevel(4);
+    }
+
 }
