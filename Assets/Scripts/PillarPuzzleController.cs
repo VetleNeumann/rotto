@@ -9,7 +9,9 @@ public class PillarPuzzleController : MonoBehaviour
     PillarPuzzleManager puzzleManager;
     Pillar[] pillars;
 
+    [SerializeField]
     float initialTime = 1.2f;
+    
     float timer;
     bool timerRunning = false;
     ColorRGB prevColor = ColorRGB.Red;
@@ -104,10 +106,10 @@ public class PillarPuzzleController : MonoBehaviour
                 if (DoneWithMaterial(ColorRGB.Red) && DoneWithMaterial(ColorRGB.Green) && DoneWithMaterial(ColorRGB.Blue))
                 {
                     timerRunning = false;
-					if (solvedDoor != null)
-						solvedDoor.Solve();
-					else
-						ResetPuzzle();
+                    if (solvedDoor != null)
+                        solvedDoor.Solve();
+                    else
+                        Debug.LogError("No door for puzzle to unlock!");
                 }
                 break;
             }
