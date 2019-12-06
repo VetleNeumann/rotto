@@ -6,7 +6,8 @@ using UnityEngine.UIElements;
 public class PlayerManager : MonoBehaviour
 {
 	Transform batonPivot;
-	Transform baton;
+    Transform baton;
+    Transform batonExtension;
 	Transform body;
 
 	Rigidbody rigidBody;
@@ -32,11 +33,24 @@ public class PlayerManager : MonoBehaviour
                 //Baton Pivot is the gameobject with colliders and a rigidbody.
 				case "Baton Pivot":
 					batonPivot = child;
-					baton = batonPivot.GetChild(0).GetComponent<Transform>();
+					//baton = batonPivot.GetChild(0).GetComponent<Transform>();
 					break;
+                case "Baton Model Pivot":
+                    baton = child;
+                    foreach (Transform childsChild in child.GetChild(0))
+                    {
+                        switch (childsChild.name)
+                        {
+                            case "Cylinder.001":
+                                batonExtension = childsChild;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    break;
 				case "Body":
 					body = child;
-                    print(body.name);
 					break;
 				default:
 					break;
@@ -90,9 +104,10 @@ public class PlayerManager : MonoBehaviour
                 batonRigidBody.angularVelocity = new Vector3(angVel.x, Mathf.Clamp(angVel.y, -maxMove, maxMove), angVel.z);
             }
         }
-        
+
         //batonPivot.localRotation = Quaternion.Euler(0, batonPivot.localRotation.eulerAngles.x, 0);
         //baton.localRotation = Quaternion.Euler(90, 0, 0);
+        baton.localRotation = Quaternion.Euler(batonPivot.localRotation.eulerAngles + Vector3.up * 90);
     }
 
 	public void BatonState(bool extended, float retractedLength, float extendedLength, float inertia)
@@ -100,7 +115,9 @@ public class PlayerManager : MonoBehaviour
 		batonExtend = Mathf.Lerp(batonExtend, extended ? extendedLength : retractedLength, inertia);
 		//baton.position = body.position + batonPivot.forward * batonExtend + batonPivot.forward / 2f;
 		batonPivot.localScale = new Vector3(0.25f, 0.25f, batonExtend);
-	}
+        Vector3 currentPos = batonExtension.localPosition;
+        batonExtension.localPosition = new Vector3(-3 + (batonExtend - retractedLength) * (-6 / (extendedLength - retractedLength)), currentPos.y, currentPos.z);
+    }
 
     public void Move(Vector2 inputs, float maxSpeed, float accelRate)
     {
