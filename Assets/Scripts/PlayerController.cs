@@ -10,6 +10,10 @@ public class PlayerController : MonoBehaviour
 
     public int keys = 0;
     public bool diagonalView = false;
+    public bool invulnerable = false;
+
+    [SerializeField]
+    float turnRate;
 
     [SerializeField]
     float accelrate;
@@ -26,8 +30,12 @@ public class PlayerController : MonoBehaviour
 	[SerializeField]
 	float batonMaxMove;
 
-	[SerializeField]
+    [SerializeField]
+    float batonRetractLength;
+    [SerializeField]
 	float batonExtendLength;
+    [SerializeField]
+    float lightLevel;
 
     bool extendBaton = false;
 
@@ -37,7 +45,6 @@ public class PlayerController : MonoBehaviour
         playerManager = GetComponent<PlayerManager>();
         cameraManager = Camera.main.GetComponent<CameraManager>();
     }
-
     // Update is called once per frame
     void Update()
     {
@@ -57,7 +64,7 @@ public class PlayerController : MonoBehaviour
 		Ray mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
 		playerManager.BatonRotate(mouseRay, batonMaxMove, batonRotateInertia, chargeSpring);
 
-		playerManager.BatonState(extendBaton, batonExtendLength, batonStateInertian);
+		playerManager.BatonState(extendBaton, batonRetractLength, batonExtendLength, batonStateInertian);
 	}
 
     void MovementControl()
@@ -67,13 +74,29 @@ public class PlayerController : MonoBehaviour
         {
             inputs = new Vector2(inputs.x + inputs.y, -inputs.x + inputs.y).normalized * inputs.magnitude;
         }
-            
 
         playerManager.Move(inputs, accelrate, maxSpeed);
+        playerManager.TurnBody(turnRate);
     }
 
 	void MinimapControl()
 	{
 		playerManager.ToggleMinimap(Input.GetKey(KeyCode.Space));
 	}
+    public IEnumerator OnCollisionEnter(Collision collision)
+    {
+        
+        if (collision.gameObject.tag == "dmgObject" && invulnerable== false)
+        {
+            invulnerable = true;
+            lightLevel -= 1f;
+            playerManager.ChangeLightLevel(lightLevel);
+            yield return new WaitForSeconds(1.5f);
+            invulnerable = false;
+        }
+    }
+    public void TurnOnLights()
+    {
+        playerManager.ChangeLightLevel(4);
+    }
 }

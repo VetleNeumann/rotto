@@ -38,7 +38,6 @@ public class TurnstileController : ControllerBase
             {
                 case "Button":
                     button = child.GetComponent<MeshRenderer>();
-                    print("found");
                     break;
                 case "Light":
                     light = child.GetComponent<Light>();

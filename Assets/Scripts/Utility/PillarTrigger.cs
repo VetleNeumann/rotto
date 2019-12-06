@@ -13,6 +13,9 @@ public class PillarTrigger : MonoBehaviour
 
 	void OnTriggerEnter(Collider collider)
 	{
+        if (Vector3.SqrMagnitude(transform.position - (collider.transform.position - collider.transform.forward)) <
+            Vector3.SqrMagnitude(transform.position - (collider.transform.position + collider.transform.forward)))
+            return;
 		puzzleController.PillarHit(transform);
 	}
 }

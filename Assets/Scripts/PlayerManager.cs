@@ -6,15 +6,17 @@ using UnityEngine.UIElements;
 public class PlayerManager : MonoBehaviour
 {
 	Transform batonPivot;
-	Transform baton;
+    Transform baton;
+    Transform batonExtension;
 	Transform body;
 
 	Rigidbody rigidBody;
+    Rigidbody batonRigidBody;
 	Projector projector;
 
 	float batonExtend;
 	float springCharge;
-	bool springCharing = false;
+	bool springCharging = false;
 
 	int health = 4;
 
@@ -28,12 +30,27 @@ public class PlayerManager : MonoBehaviour
 	{
 		foreach (Transform child in transform)
 		{
-			switch (child.name)
+            switch (child.name)
 			{
+                //Baton Pivot is the gameobject with colliders and a rigidbody.
 				case "Baton Pivot":
 					batonPivot = child;
-					baton = batonPivot.GetComponentInChildren<Transform>();
+					//baton = batonPivot.GetChild(0).GetComponent<Transform>();
 					break;
+                case "Baton Model Pivot":
+                    baton = child;
+                    foreach (Transform childsChild in child.GetChild(0))
+                    {
+                        switch (childsChild.name)
+                        {
+                            case "Cylinder.001":
+                                batonExtension = childsChild;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    break;
 				case "Body":
 					body = child;
 					break;
@@ -41,33 +58,68 @@ public class PlayerManager : MonoBehaviour
 					break;
 			}
 		}
-	}
+
+        batonRigidBody = batonPivot.GetComponent<Rigidbody>();
+
+        //batonRigidBody.AddTorque(new Vector3(0, 10, 0), ForceMode.VelocityChange);
+        TurnOnLights();
+    }
 
 	public void BatonRotate(Ray cameraRay, float maxMove, float inertia, bool chargeSpring)
 	{
+
 		Vector3 position = GetMousePos(cameraRay);
 
 		float mouseAngle = Vector3.SignedAngle(position - new Vector3(transform.position.x, 0, transform.position.z), Vector3.forward, Vector3.down);
-		float batonAngle = Vector3.SignedAngle(baton.forward, Vector3.forward, Vector3.down);
+        //float batonAngle = Vector3.SignedAngle(batonPivot.rotation.eulerAngles, Vector3.up, Vector3.up);
+        float batonAngle = batonPivot.rotation.eulerAngles.y;
+        if (batonAngle >= 360)
+            batonAngle -= Mathf.Repeat(360f, batonAngle);
+        if (batonAngle > 180)
+            batonAngle -= 360;
 
 		float moveDelta = Mathf.DeltaAngle(batonAngle, mouseAngle);
 		float moveLength = Mathf.Abs(moveDelta);
 		float moveAngle = Mathf.MoveTowardsAngle(batonAngle, mouseAngle, Mathf.Min(maxMove, moveLength * inertia));
 
-		float springDir = Mathf.Clamp(moveDelta * inertia, -maxMove, maxMove);
-		if (chargeSpring)
-			springCharge += springDir;
+        float springDir = moveDelta * inertia;
+		//springDir = Mathf.Clamp(moveDelta * inertia, -maxMove, maxMove);
+        if (chargeSpring)
+            springCharge += Mathf.Clamp(springDir, -maxMove, maxMove);
 
-		if (!springCharing)
-			batonPivot.localRotation = Quaternion.Euler(0, moveAngle, 0);
-	}
+        else if (!chargeSpring)
+        {
+            if (Mathf.Abs(springDir) < maxMove)
+            {
+                //Deaccelerate
+                float currentDirection = batonRigidBody.angularVelocity.y;
+                batonRigidBody.AddTorque(0f, -5 * batonRigidBody.angularVelocity.y/springDir, 0f);
+                if (currentDirection != Mathf.Sign(batonRigidBody.angularVelocity.y))
+                    batonRigidBody.angularVelocity = Vector3.zero;
+            }
+            else
+            {
+                //Accelerate / Clamp speed
+                batonRigidBody.AddTorque(new Vector3(0f, springDir, 0f));
 
-	public void BatonState(bool extended, float length, float inertia)
+                Vector3 angVel = batonRigidBody.angularVelocity;
+                batonRigidBody.angularVelocity = new Vector3(angVel.x, Mathf.Clamp(angVel.y, -maxMove, maxMove), angVel.z);
+            }
+        }
+
+        //batonPivot.localRotation = Quaternion.Euler(0, batonPivot.localRotation.eulerAngles.x, 0);
+        //baton.localRotation = Quaternion.Euler(90, 0, 0);
+        baton.localRotation = Quaternion.Euler(batonPivot.localRotation.eulerAngles + Vector3.up * 90);
+    }
+
+	public void BatonState(bool extended, float retractedLength, float extendedLength, float inertia)
 	{
-		batonExtend = Mathf.Lerp(batonExtend, extended ? length : 0.5f, inertia);
-		baton.position = body.position + baton.forward * batonExtend + baton.forward / 2f;
-		baton.localScale = new Vector3(1, 1, batonExtend);
-	}
+		batonExtend = Mathf.Lerp(batonExtend, extended ? extendedLength : retractedLength, inertia);
+		//baton.position = body.position + batonPivot.forward * batonExtend + batonPivot.forward / 2f;
+		batonPivot.localScale = new Vector3(0.25f, 0.25f, batonExtend);
+        Vector3 currentPos = batonExtension.localPosition;
+        batonExtension.localPosition = new Vector3(-3 + (batonExtend - retractedLength) * (-6 / (extendedLength - retractedLength)), currentPos.y, currentPos.z);
+    }
 
     public void Move(Vector2 inputs, float maxSpeed, float accelRate)
     {
@@ -78,6 +130,12 @@ public class PlayerManager : MonoBehaviour
         rigidBody.AddForce(deltaForce);
         if (rigidBody.velocity.magnitude > maxSpeed)
             rigidBody.velocity = rigidBody.velocity.normalized * maxSpeed;
+    }
+
+    public void TurnBody(float turnRate)
+    {
+        float velocityAngle = Vector3.SignedAngle(Vector3.forward, rigidBody.velocity, Vector3.up);
+        body.localRotation = Quaternion.Slerp(body.localRotation, Quaternion.Euler(0, velocityAngle, 0), turnRate);
     }
 
     public void UnleashSpring(float step)
@@ -107,7 +165,7 @@ public class PlayerManager : MonoBehaviour
 
 	IEnumerator SpringRoutine(float step)
 	{
-		springCharing = true;
+		springCharging = true;
 		while (Mathf.Abs(springCharge) > step * 1.5f)
 		{
 			float springDir = springCharge / Mathf.Abs(springCharge);
@@ -118,7 +176,46 @@ public class PlayerManager : MonoBehaviour
 			yield return new WaitForSeconds(0);
 		}
 
-		springCharing = false;
+		springCharging = false;
 		springCharge = 0;
 	}
+
+    public void ChangeLightLevel(float lightLevel)
+    {
+        if (lightLevel == 0f)
+        { Changelight("light1", false); Changelight("light2", false); Changelight("light3", false); Changelight("light4", false);//Debug.Log("l0"); 
+        }
+        if (lightLevel==1f)
+        { Changelight("light1", true); Changelight("light2", false); Changelight("light3", false); Changelight("light4", false);//Debug.Log("l1"); 
+        }
+        if (lightLevel == 2f)
+        { Changelight("light1", true); Changelight("light2", true); Changelight("light3", false); Changelight("light4", false); //Debug.Log("l2");
+        }
+        if (lightLevel == 3f)
+        { Changelight("light1", true); Changelight("light2", true); Changelight("light3", true); Changelight("light4", false); //Debug.Log("l3"); 
+        }
+        if (lightLevel == 4f)
+        { Changelight("light1", true); Changelight("light2", true); Changelight("light3", true); Changelight("light4", true); //Debug.Log("l4"); 
+        }
+
+    }
+    public void Changelight(string lightName, bool lightOn)
+    {
+        MeshRenderer[] lights = GetComponentsInChildren<MeshRenderer>();
+        foreach (MeshRenderer light in lights)
+            if (light.name == (lightName))
+                {
+                if (lightOn == true)
+                    light.material.color = Color.yellow;
+                else if (lightOn == false)
+                    light.material.color = Color.black;
+
+            }
+
+    }
+    public void TurnOnLights()
+    {
+        ChangeLightLevel(4);
+    }
+
 }

@@ -11,8 +11,11 @@ public class ButtonCollider : MonoBehaviour
         controller = GetComponentInParent<ControllerBase>();
     }
 
-    void OnCollisionEnter()
+    void OnCollisionEnter(Collision collision)
     {
+        if (Vector3.SqrMagnitude(transform.position - (collision.collider.transform.position - collision.collider.transform.forward)) <
+            Vector3.SqrMagnitude(transform.position - (collision.collider.transform.position + collision.collider.transform.forward)))
+            return;
         controller.ButtonPressed();
     }
 }
