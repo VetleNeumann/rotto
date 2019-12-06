@@ -29,7 +29,7 @@ public class Toggler : BaseEnemy
 
     void Update()
     {
-		if (target != null)
+		if (target != null && !Paused)
 		{
 			Vector3 dir = (target.transform.position - transform.position).normalized;
 			transform.Translate(new Vector3(dir.x, 0, dir.z) * speed * Time.deltaTime);

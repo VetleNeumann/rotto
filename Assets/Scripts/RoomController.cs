@@ -28,6 +28,9 @@ public class RoomController : MonoBehaviour
         
     }
 
+	public void AddDoor(DoorController door)
+		=> doors.Add(door);
+
 	public void TogglePlayer(PlayerController player)
 	{
 		roomManager.TogglePlayer(player);

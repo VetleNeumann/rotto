@@ -12,6 +12,8 @@
     {
         Tags { "Queue"="Transparent" }
         LOD 200
+		ZWrite On
+		AlphaToMask On
 
         CGPROGRAM
         // Physically based Standard lighting model, and enable shadows on all light types

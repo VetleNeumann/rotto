@@ -16,6 +16,8 @@ public class PlayerManager : MonoBehaviour
 	float springCharge;
 	bool springCharing = false;
 
+	int health = 4;
+
 	private void Awake()
 	{
 		rigidBody = gameObject.GetComponent<Rigidbody>();
@@ -87,6 +89,14 @@ public class PlayerManager : MonoBehaviour
 	{
 		if (projector != null)
 			projector.enabled = state;
+	}
+
+	public void AddHealth(int health)
+	{
+		this.health -= health;
+
+		if (this.health <= 0)
+			Destroy(gameObject);
 	}
 
 	Vector3 GetMousePos(Ray cameraRay)

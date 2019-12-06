@@ -51,14 +51,11 @@ public class RoomEditor : Editor
             {
                 //North/South wall, Z is thickness
                 if (child.localScale.x > child.localScale.z)
-                {
                     child.localScale = new Vector3(child.localScale.x, wallHeight, wallThickness);
-                }
+
                 //West/East wall, X is thickness
                 if (child.localScale.x < child.localScale.z)
-                {
                     child.localScale = new Vector3(wallThickness, wallHeight, child.localScale.z);
-                }
             }
         }
     }
@@ -141,22 +138,17 @@ public class RoomEditor : Editor
                 }
                 //South
                 else
-                {
                     wall.localPosition = new Vector3(wall.localPosition.x, wall.localScale.y / 2, -floor.lossyScale.z * 5f + wall.localScale.z / 2);
-                }
             }
             else
             {
                 //West
                 if (wallDirection.x < 0)
-                {
                     wall.localPosition = new Vector3(-floor.lossyScale.x * 5f + wall.localScale.x / 2, wall.localScale.y / 2, wall.localPosition.z);
-                }
+
                 //East
                 else
-                {
                     wall.localPosition = new Vector3(floor.lossyScale.x * 5f - wall.localScale.x / 2, wall.localScale.y / 2, wall.localPosition.z);
-                }
             }
         }
     }
